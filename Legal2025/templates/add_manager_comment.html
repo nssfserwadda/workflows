@@ -1,0 +1,275 @@
+{% extends "headerlegal.html" %}
+{% load custom_tags %}
+{% load static %}
+{% load humanize %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+<style>
+    /* Table Styles */
+    table.table {
+        border: none;
+        width: 100%;
+    }
+
+    table.table td,
+    table.table th {
+        border: none;
+        font-size: 14px;
+        padding: 8px;
+        text-align: left;
+    }
+
+    /* Responsive layout */
+    .container {
+        max-width: 90%;
+        margin: 10px auto;
+    }
+
+    /* Bordered columns for details and forms */
+    .bordered-col {
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: #fff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+    }
+
+    /* Heading styles */
+    h1, h2 {
+        color: #333;
+        font-size: 24px;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    p {
+        margin-bottom: 10px;
+    }
+
+    /* Buttons */
+    .btn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 8px 16px;
+        font-size: 14px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+        background-color: #45a049;
+    }
+
+    /* Alert styles */
+    .alert {
+        font-size: 14px;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    /* Form Styles */
+    form {
+        padding: 15px;
+    }
+
+    form input,
+    form select,
+    form textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+
+    @media (max-width: 767.98px) {
+        .bordered-col {
+            margin-bottom: 15px;
+        }
+
+        h1, h2 {
+            font-size: 20px;
+        }
+    }
+
+    .litigation-fields {
+        display: none;
+        margin-top: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if messages %}
+    {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %} text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- Legal File details -->
+        <div class="col-lg-8 col-md-6 bordered-col">
+            <h2>Legal File Details</h2>
+            <table class="table table-bordered">
+                <tbody>
+                    <tr>
+                        <th style="white-space: nowrap;">NSSF Number</th>
+                        <td>{{ legal_file.nssf_number }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Employer Name</th>
+                        <td>{{ legal_file.employer_name }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Branch</th>
+                        <td>{{ legal_file.branch }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">FY Submitted</th>
+                        <td>{{ legal_file.fy_submitted_to_legal }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Total Arrears</th>
+                        <td>{{ legal_file.total_arrears|intcomma }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Special Contribution</th>
+                        <td>{{ legal_file.special_contribution|intcomma }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Interest</th>
+                        <td>{{ legal_file.interest|intcomma }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Pen</th>
+                        <td>{{ legal_file.penalties|intcomma }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Amount Paid</th>
+                        <td>{{ legal_file.amount_paid|intcomma }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Balance</th>
+                        <td>{{ legal_file.balance|intcomma }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Court Name</th>
+                        <td>{{ legal_file.court }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Court Filling Date</th>
+                        <td>{{ legal_file.courtfiling_date }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Latest Status</th>
+                        <td>{{ legal_file.case_status  }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Latest Legal Status</th>
+                        <td>{{ legal_file.comments.last.legal_status }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>All Comments and Updates</h3>
+            <ul>
+                {% for comment in previous_comments %}
+                    <li>
+                        <strong>{{ comment.created_on|date:"Y-m-d H:i" }}</strong>:
+                        {{ comment.comment }}<br>
+                        Status: <em>{{ comment.status }}</em>, Legal Status: <em>{{ comment.legal_status }}</em>
+                        <ul>
+                            {% for attachment in comment.comment_attachments.all %}
+                                <li><a href="{{ attachment.file.url }}" download>{{ attachment.file.name }}</a></li>
+                            {% empty %}
+                                <li>No attachments for this update.</li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                {% empty %}
+                    <p>No updates yet.</p>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Update or Assign Form -->
+        <div class="col-lg-4 col-md-6 bordered-col">
+            
+            <h1>Update Legal File</h1>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+
+                <div class="litigation-fields">
+                    <label for="id_court"><strong>Court Name</strong></label>
+                    <input type="text" id="id_court" name="court" class="form-control">
+
+                    <label for="id_courtfiling_date"><strong>Court Filing Date</strong></label>
+                    <input type="date" id="id_courtfiling_date" name="courtfiling_date" class="form-control">
+                </div>
+
+                <div class="fully-paid-fields" style="display: none;">
+                    <label for="id_amount_paid"><strong>Amount Paid</strong></label>
+                    <input type="text" id="id_amount_paid" name="amount_paid" class="form-control">
+                
+                    <label for="id_balance"><strong>Balance</strong></label>
+                    <input type="text" id="id_balance" name="balance" class="form-control">
+                </div>
+                
+
+                <button type="submit" class="btn">Submit Comment</button>
+            </form>
+   
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script>
+    function toggleLitigationFields() {
+        var legalStatus = document.getElementById('id_legal_status');
+        var litigationFields = document.querySelector('.litigation-fields');
+
+        if (legalStatus && legalStatus.value === 'Litigation') {
+            litigationFields.style.display = 'block';
+        } else {
+            litigationFields.style.display = 'none';
+        }
+    }
+
+    function toggleFullyPaidFields() {
+        var legalStatus = document.getElementById('id_legal_status').value; // ✅ Correctly get the selected value
+        var fullyPaidFields = document.querySelector('.fully-paid-fields');
+
+        if (legalStatus === 'Fully Paid') {
+            fullyPaidFields.style.display = 'block';
+        } else {
+            fullyPaidFields.style.display = 'none';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var legalStatusField = document.getElementById('id_legal_status');
+        if (legalStatusField) {
+            legalStatusField.addEventListener('change', function () {
+                toggleLitigationFields();
+                toggleFullyPaidFields();
+            });
+
+            toggleLitigationFields(); // ✅ Initial check when page loads
+            toggleFullyPaidFields(); // ✅ Initial check when page loads
+        }
+    });
+</script>
+{% endblock %}

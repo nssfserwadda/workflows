@@ -1,0 +1,64 @@
+{% extends "header13.html" %}
+
+{% load static %}
+
+{% block content %}
+
+
+<h1>Employer Closure Details</h1>
+<p><strong>NSSF Number:</strong> {{ forclosure.nssf_no }}</p>
+<p><strong>Employer:</strong> {{ forclosure.employer_name }}</p>
+<p><strong>State:</strong> {{ forclosure.state }}</p>
+<p><strong>Created at:</strong> {{ forclosure.updated_at }}</p>
+<p><strong>Lat updated at:</strong> {{ forclosure.created_at }}</p>
+<p><strong>Reason:</strong> {{ forclosure.reason }}</p>
+<p><strong>Remark:</strong> {{ forclosure.remark }}</p>
+
+
+
+{% if forclosure.state == 'initiated' %}
+<form method="POST">
+  {% csrf_token %}
+  <div class="form-group">
+    <label for="review_comment">review_comment:</label>
+    <textarea class="form-control" name="review_comment" id="review_comment"></textarea>
+  </div>
+  <input type="hidden" name="action" value="cancel">
+  <button class="btn btn-primary" type="submit">Cancel Request</button>
+</form>
+{% endif %}
+
+
+{% if forclosure.state == 'reversed' %}
+  <form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="review_comment">review_comment:</label>
+      <textarea class="form-control" name="review_comment" id="review_comment"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="action">Action:</label>
+      <select class="form-control" name="action" id="action">
+        <option value="resubmit">Resubmit Request</option>
+        <option value="cancel">Cancel request</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" type="submit">Submit</button>
+  </form>
+{% endif %}
+
+{% if forclosure.state == 'resubmited' %}
+<form method="POST">
+  {% csrf_token %}
+  <div class="form-group">
+    <label for="review_comment">review_comment:</label>
+    <textarea class="form-control" name="review_comment" id="review_comment"></textarea>
+  </div>
+  <input type="hidden" name="action" value="cancel">
+  <button class="btn btn-primary" type="submit">Cancel Request</button>
+</form>
+{% endif %}
+
+<script src="{% static 'bootstrap/js/bootstrap.js' %}"></script>
+
+{% endblock %}

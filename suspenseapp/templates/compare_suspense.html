@@ -1,0 +1,230 @@
+{% extends "header19.html" %}
+{% load static %}
+
+{% block styles %}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css">
+
+<style>
+    .filter-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .summary-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        margin-bottom: 30px;
+    }
+
+    .summary-table th, .summary-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    .summary-table th {
+        background-color: #f8f9fa;
+    }
+
+    /* ✅ Ensures proper scrolling */
+    .table-container {
+        overflow-y: auto !important;  /* ✅ Enables vertical scrolling */
+        overflow-x: auto !important;  /* ✅ Enables horizontal scrolling */
+        max-height: 500px;  /* ✅ Ensures scrollbars appear */
+        width: 100%;
+    }
+
+    /* ✅ Prevent text wrapping in table cells */
+    table#ordertable2 td, table#ordertable2 th {
+        white-space: nowrap;
+    }
+
+    /* Remove inner row lines in the DataTable */
+    #ordertable2 tbody tr td {
+        border: none !important;  /* ✅ Removes all cell borders */
+    }    
+
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h3 class="mt-4">Compare Suspense Data</h3>
+
+    <!-- Filter Form -->
+    <form method="GET" action="{% url 'susp_comp' %}" class="mb-3">
+        <div class="filter-container">
+            <div class="form-group">
+                <label for="nssfno">NSSF Number:</label>
+                <input type="text" id="nssfno" name="nssfno" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="tin">TIN:</label>
+                <input type="text" id="tin" name="tin" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>From Date:</label>
+                <input type="date" name="from_date" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>To Date:</label>
+                <input type="date" name="to_date" class="form-control" required>
+            </div>
+
+            <div class="d-flex flex-column" style="height: 100%;">
+                <label>_________________ </label>
+                <button type="submit" class="btn btn-primary mt-auto">Compare Records</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Display Selected Filter Criteria in a Table -->
+    {% if df2 and df2|length > 0 %}
+    <table class="summary-table">
+        <tr>
+            <th>NSSF Number</th>
+            <th>TIN</th>
+            <th>Employer Name</th>
+            <th>From Date</th>
+            <th>To Date</th>
+        </tr>
+        <tr>
+            <td>{{ nssfno }}</td>
+            <td>{{ tin }}</td>
+            <td>{{ employer_name }}</td>
+            <td>{{ from_date }}</td>
+            <td>{{ to_date }}</td>
+        </tr>
+    </table>
+    {% endif %}
+
+    <!-- Show table only if results exist -->
+    {% if df2 and df2|length > 0 %}
+
+<!-- 
+    <div class="d-flex justify-content-end mb-3">
+        <a href="?nssfno={{ nssfno }}&tin={{ tin }}&from_date={{ from_date }}&to_date={{ to_date }}&export=excel" 
+           class="btn btn-success">
+            Download Details
+        </a>
+    </div>
+     -->
+
+
+
+
+    <div class="table-container">
+        <table id="ordertable2" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>NSSF Name</th>
+                    <th>URA Name</th>
+                    <th>P_age Match</th>
+                    <!-- <th>NSSF Period</th> -->
+                    <!-- <th>URA Period</th> -->
+                    <th>Suspense</th>                    
+                    <!-- <th>URA Based NSSF</th> -->
+                    <th>Matches</th>
+                    <th>Contact</th>
+                    <th>ura_based_nssf</th>                      
+                    <th>NSSF period</th>
+                    <th>URA period</th>
+                    <th>employer_name</th>
+                    <th>employerno</th>                    
+                    <th>EmployeeTIN</th>
+                    <th>BasicSalary</th>
+                    <th>GrossTotIncome</th>
+
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in df2 %}
+                <tr>
+                    <td>{{ row.member_name }}</td>
+                    <td>{{ row.EmployeeName }}</td>
+                    <td data-sort="{{ row.percentage_match }}">{{ row.percentage_match|floatformat:0 }}</td>
+                    <!-- <td>{{ row.end_date|date:"m-Y" }}</td>
+                    <td>{{ row.EmployeeToDt|date:"m-Y" }}</td>                     -->
+                    <td>{{ row.init_member_suspense_contr }}</td>
+                    <!-- <td>{{ row.ura_based_nssf }}</td> -->
+                    <td>{{ row.num_best_matches }}</td>
+                    <td>{{ row.contact }}</td>
+                    <td>{{ row.ura_based_nssf }}</td>                    
+                    <td>{{ row.end_date|date:"m-Y" }}</td>
+                    <td>{{ row.EmployeeToDt|date:"m-Y" }}</td>
+                    <td>{{ row.employer_name }}</td>
+                    <td>{{ row.employerno }}</td>
+
+                    <td>{{ row.EmployeeTIN }}</td>
+                    <td>{{ row.BasicSalary }}</td>
+                    <td>{{ row.GrossTotIncome }}</td>
+
+
+
+
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% elif message %}
+        <p class="alert alert-warning text-center">{{ message }}</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css">
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
+
+<script> 
+    $(document).ready(function() {
+        $('#ordertable2').DataTable({
+            "scrollY": "500px",  // ✅ Enables vertical scrolling
+            "scrollX": true,  // ✅ Enables horizontal scrolling
+            "scrollCollapse": true,  // ✅ Ensures the height shrinks if needed
+            "paging": true,
+            "lengthChange": true,
+            "lengthMenu": [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ], // ✅ Add options for number of rows per page
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true,
+            "columnDefs": [
+                { "type": "datetime", "targets": 2 }  // ✅ Sorting for Percentage Match
+            ],
+            "order": [[2, 'desc']], // ✅ Sort by Percentage Match
+            "dom": '<"top d-flex align-items-center justify-content-between"lBf>rt<"bottom"ip>', 
+            "buttons": [
+                { extend: 'copy', text: 'Copy' },
+                { extend: 'csv', text: 'Export CSV' },
+                { extend: 'excel', text: 'Export Excel' },
+                { extend: 'pdf', text: 'Export PDF' },
+                { extend: 'print', text: 'Print' }
+            ]
+        });
+    });
+</script>
+{% endblock %}

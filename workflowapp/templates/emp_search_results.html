@@ -1,0 +1,131 @@
+{% extends "header10.html" %}
+
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+<style>
+    /* Adjust the border width and color for the table */
+    table.table {
+        border: none;
+    }
+
+    /* Adjust the border width and color for the table cells */
+    table.table td,
+    table.table th {
+        border: none;
+    }
+
+    /* Remove the default table cell padding */
+    table.table td,
+    table.table th {
+        padding: 0;
+    }
+
+    /* Apply the nowrap style to table cells */
+    table.table td.nowrap,
+    table.table th.nowrap {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Limit table size and enable horizontal scrolling */
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        max-width: 1200px; /* Adjust the max-width value as needed */
+        margin: 0 auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+  <h3>Search Engagements</h3>
+
+  <form method="GET" action="{% url 'search_engagements' %}">
+    {{ form }}
+    <button type="submit">Search</button>
+  </form>
+
+
+
+
+
+
+  {% if engagements %}
+    <h3>Search Results</h3>
+    <div class="col-sm-16 p-5">
+        <div class="alert alert-info text-center"><strong> Engagement History</strong></div>
+        <div class="table-container">
+            <table id="order-table" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Action date</th>                        
+                        <th>Recorded by</th>                        
+                        <th>Activity</th>
+                        <th>Recorded at</th>
+                        <th>Status</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for engagement in engagements %}
+                    <tr>
+                        
+                        <td>
+                            <a href="eng_detail/{{ engagement.id }}/" class="text-primary">{{ engagement.action_date }}</a>
+                        </td>
+                        
+                        
+                        
+                        <td class="nowrap">{{ engagement.user|truncatechars:25 }}</td>
+                        <td class="nowrap">{{ engagement.activity_done|truncatechars:25 }}</td>
+                        <td class="nowrap">{{ engagement.modified_at }}</td>
+                        <td class="nowrap">{{ engagement.state }}</td>
+                        <td class="nowrap">{{ engagement.comment|truncatechars:25 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+  {% else %}
+    <p>No engagements found.</p>
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Custom sorting function for datetime column
+        jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+            "datetime-pre": function(a) {
+                return new Date(a).getTime();
+            },
+
+            "datetime-asc": function(a, b) {
+                return a - b;
+            },
+
+            "datetime-desc": function(a, b) {
+                return b - a;
+            }
+        });
+
+        $('#order-table').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "columnDefs": [
+                { "type": "datetime", "targets": 2 } // Set the datetime sorting type for the 'Recorded at' column
+            ],
+            "order": [[2, 'desc']] // Specify the column index for ordering (2 for the 'Recorded at' column)
+        });
+    });
+</script>
+{% endblock %}

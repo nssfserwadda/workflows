@@ -1,0 +1,20 @@
+<!-- your_template.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Template</title>
+</head>
+<body>
+    <h1>Your Template</h1>
+
+    <form method="post" action="{% url 'send_emails' %}">
+        {% csrf_token %}
+        <button type="submit">Send Emails</button>
+    </form>
+
+    <!-- Add other content as needed -->
+
+</body>
+</html>

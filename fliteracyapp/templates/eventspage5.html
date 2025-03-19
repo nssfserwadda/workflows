@@ -1,0 +1,372 @@
+{% extends "header14.html" %}
+
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+<style>
+    /* Adjust the border width and color for the table */
+    table.table {
+        border: none;
+    }
+
+    /* Adjust the border width and color for the table cells */
+    table.table td,
+    table.table th {
+        border: none;
+        font-size: 10px;
+    }
+
+    /* Remove the default table cell padding */
+    table.table td,
+    table.table th {
+        padding: 0;
+        font-size: 10px;
+    }
+
+    /* Add borders to the columns under col-sm-4 and col-sm-8 */
+    
+    .row .col-sm-4,
+    
+    .row .col-sm-7 {
+        border: 1px solid #ccc;
+        padding: 10px; /* Optional: Add padding for better spacing */
+        border-radius: 10px; /* Add curved edges */
+        margin-bottom: 20px; /* Add space between the columns */
+    }
+
+
+    .row .col-sm-1 {
+        padding: 0; /* Optional: Add padding for better spacing */
+
+    }
+
+
+    /* Ensure content fits on one page */
+    .container {
+        overflow-x: hidden;
+        max-width: 95%; /* Change the max-width value if necessary */
+    }
+
+
+    /* Add borders to the columns under col-sm-4 and col-sm-8 */
+    .bordered-col {
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        overflow: auto; /* Enable overflow scrolling */
+        max-height: 900px; /* Set a maximum height for the container to trigger scrolling */
+        max-width: 100%
+    }
+
+
+
+    /* Prevent text wrapping in table cells */
+    .table-container table td,
+    .table-container table th {
+        white-space: nowrap;
+    }
+
+    /* Adjust button size */
+    .btn {
+        font-size: 10px;
+        padding: 4px 8px; /* Adjust padding to fit smaller buttons */
+        line-height: 1; /* Ensure button height matches font size */
+    }
+
+    /* Override Bootstrap styles for smaller screens */
+    @media (max-width: 767.98px) {
+        .col-sm-4,
+        .col-sm-7 {
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+
+    
+
+
+    <div class="container">
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-success text-center">
+                {{message}}
+            </div>
+            {% endfor %}
+        {% endif%}
+
+            
+        <div class="row g-6"> 
+                
+            <div class="col-4 bordered-col mx-3">
+                <div class="table-container">
+                    <div class="alert alert-info text-center">Add New Event</div>
+
+                    <form class="row g-3" method="POST" enctype="multipart/form-data" action="{% url 'addEvent' %}" novalidate>  
+                    
+                        
+                    
+                        {% csrf_token %}    
+
+
+
+                        <div class="col-12">
+                            <label for="event_name" class="form-label">Event Name</label>
+                            <input type="text" name="event_name" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="event_date" class="form-label">Event Date</label>
+                            <input type="date" name="event_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="employer_number" class="form-label">Employer Number</label>
+                            <input type="text" name="employer_number" class="form-control">
+                        </div>                    
+                        <div class="col-12">
+                            <label for="employer" class="form-label">Employer</label>
+                            <input type="text" name="employer" class="form-control">
+                        </div>
+    
+
+                        <div class="col-md-4">
+                            <label for="program" class="form-label">Program</label>                       
+                            <select name="program" class="form-select">
+                                <option value="" selected disabled>Select Program</option>
+                                <option value="Money Talk">Money Talk</option>
+                                <option value="Townhall">Townhall</option>
+                                <option value="Webinar">Webinar</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="delivery_mode" class="form-label">Delivery Mode</label>
+                            <select name="delivery_mode" class="form-select">
+                                <option value="" selected disabled>Select Delivery Mode</option>
+                                <option value="Online">Online</option>
+                                <option value="Offline">Offline</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="on_spot_feedback" class="form-label">On Spot Feedback</label>
+                            <select name="on_spot_feedback" class="form-select">
+                                <option value="" selected disabled>Yes/No</option>
+                                <option value="True">Yes</option>
+                                <option value="False">No</option>
+                            </select>
+                        </div>
+                        
+
+
+
+
+
+                        <div class="col-md-6">
+                            <label for="contact_person" class="form-label">Contact Person</label>
+                            <input type="text" name="contact_person" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="designation" class="form-label">Designation</label>
+                            <input type="text" name="designation" class="form-control">
+                        </div>  
+    
+                        <div class="col-md-6">
+                            <label for="contact_phone" class="form-label">Contact Phone</label>
+                            <input type="tel" name="contact_phone" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="contact_email" class="form-label">Contact Email</label>
+                            <input type="email" name="contact_email" class="form-control">
+                        </div>                      
+    
+    
+                        <div class="col-md-6">
+                            <label for="fl_advisors_involved" class="form-label">FL Advisors Involved</label>
+                            <select name="fl_advisors_involved" class="form-select" multiple>
+                                <option value="Anna Maria Sanyu">Anna Maria Sanyu</option>
+                                <option value="Aisha Nakanwagi">Aisha Nakanwagi</option>
+                                <option value="Jackline Nagasha">Jackline Nagasha</option>
+                                <option value="Appolo Mbowa Kibirango">Appolo Mbowa Kibirango</option>
+                            </select>
+                        </div>
+    
+
+
+                        <div class="col-md-6 form-iteration">
+                            <label class="form-label">Attachments</label>
+                            <div class="attachments">
+                                {{ fm.attachments }}
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm mt-2" onclick="addAttachmentField()">Add Attachment</button>
+                            {% for attachment in fm.attachments.value %}
+                                <a href="{{ attachment.file.url }}" download>{{ attachment.file.name }}</a><br>
+                            {% endfor %}
+                        </div>
+                    
+
+
+
+
+
+                        <div class="col-12">
+                            <button class="btn btn-primary" type="submit">Add</button>
+                        </div>
+                    </form>
+                </div>
+                </div>
+            
+
+
+            
+            
+            <div class="col-7 bordered-col mx-3">
+                <div class="table-container">
+            
+                <div class="alert alert-info text-center">Event Data</div>
+
+                
+                <table id="order-table" class="table table-striped">
+                    <thead>
+                        <tr>
+                        <th>Event name</th>
+                        <th>Event date</th>
+                        <th>Employer</th>
+                        <th>Employer number</th>
+                       
+                        <th>Details/Update/Delete</th>
+                    </tr>
+                    </thead>
+
+
+
+
+                    <tbody>
+
+
+
+
+                    {%for data in eventdata%}
+                    <tr>
+                        <td>{{data.event_name|truncatechars:30}}</td>
+                        <td>{{data.event_date}}</td>
+                        <td>{{data.employer|truncatechars:25}}</td>
+                        <td>{{data.employer_number}}</td>
+                     
+
+                        <td>
+                        <div class="d-flex">
+                            <a href="event_details/{{data.id}}/" class="btn btn-success btn-sm mx-1">Details</a>
+                            <a href="editEvent/{{data.id}}/" class="btn btn-success btn-sm mx-1">Update</a>
+                            <a href="deleteEvent/{{data.id}}/" class="btn btn-danger btn-sm mx-1">Delete</a>
+                        </div>
+                        </td>
+                    </tr>
+                
+                    {%endfor%}
+                </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+ 
+{% endblock %}
+
+{% block scripts %}
+
+
+<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Custom sorting function for datetime column
+        jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+            "datetime-pre": function(a) {
+                return new Date(a).getTime();
+            },
+
+            "datetime-asc": function(a, b) {
+                return a - b;
+            },
+
+            "datetime-desc": function(a, b) {
+                return b - a;
+            }
+        });
+
+        $('#order-table').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true, // Enable responsive mode
+            "columnDefs": [
+                { "type": "datetime", "targets": 2 } // Set the datetime sorting type for the 'Created at' column
+            ],
+            "order": [[2, 'desc']] // Specify the column index for ordering (2 for the 'Created at' column)
+        });
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+<script>
+    function addAttachmentField() {
+        var attachmentsDiv = document.querySelector('.attachments');
+        var newAttachmentField = document.createElement('input');
+        newAttachmentField.type = 'file';
+        newAttachmentField.name = 'attachments';
+        newAttachmentField.className = 'form-control-file mb-2';
+        newAttachmentField.accept = '.pdf,.doc,.docx,.txt';
+        attachmentsDiv.appendChild(newAttachmentField);
+        }
+
+    document.getElementById('id_nssf_no').addEventListener('blur', function() {
+            var nssfNo = this.value;
+            var employerNameInput = document.getElementById('employerNameInput');
+            if (nssfNo !== '') {
+                // Send an AJAX request to retrieve the employer name based on the NSSF number
+                // Replace the AJAX request URL with your actual URL for retrieving employer name
+                var url = '/get_employer_name/?nssf_no=' + nssfNo;
+                fetch(url)
+                    .then(response => response.text())
+                    .then(data => {
+                        employerNameInput.value = data;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            } else {
+                employerNameInput.value = '';
+            }
+        });
+    </script>
+
+
+{% endblock %}

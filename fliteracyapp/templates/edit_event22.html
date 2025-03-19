@@ -1,0 +1,102 @@
+{% extends "header14.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-success text-center">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="row g-6">
+        <div class="col-10 bordered-col mx-3">
+            <div class="alert alert-info text-center">Update Event</div>
+
+            <form class="row g-3" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="col-12">
+                    <label for="event_name" class="form-label">Event Name</label>
+                    <input type="text" name="event_name" class="form-control" value="{{ fm.event_name.value }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="event_date" class="form-label">Event Date</label>
+                    <input type="date" name="event_date" class="form-control" value="{{ fm.event_date.value }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="employer_number" class="form-label">Employer Number</label>
+                    <input type="text" name="employer_number" class="form-control" value="{{ fm.employer_number.value }}">
+                </div>
+                <div class="col-12">
+                    <label for="employer" class="form-label">Employer</label>
+                    <input type="text" name="employer" class="form-control" value="{{ fm.employer.value }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="program" class="form-label">Program</label>
+                    <select name="program" class="form-select">
+                        <option value="" selected disabled>Select Program</option>
+                        <option value="Money Talk" {% if fm.program.value == 'Money Talk' %} selected {% endif %}>Money Talk</option>
+                        <option value="Townhall" {% if fm.program.value == 'Townhall' %} selected {% endif %}>Townhall</option>
+                        <option value="Webinar" {% if fm.program.value == 'Webinar' %} selected {% endif %}>Webinar</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="delivery_mode" class="form-label">Delivery Mode</label>
+                    <select name="delivery_mode" class="form-select">
+                        <option value="" selected disabled>Select Delivery Mode</option>
+                        <option value="Online" {% if fm.delivery_mode.value == 'Online' %} selected {% endif %}>Online</option>
+                        <option value="Offline" {% if fm.delivery_mode.value == 'Offline' %} selected {% endif %}>Offline</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="on_spot_feedback" class="form-label">On Spot Feedback</label>
+                    <select name="on_spot_feedback" class="form-select">
+                        <option value="" selected disabled>Yes/No</option>
+                        <option value="True" {% if fm.on_spot_feedback.value == 'True' %} selected {% endif %}>Yes</option>
+                        <option value="False" {% if fm.on_spot_feedback.value == 'False' %} selected {% endif %}>No</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="contact_person" class="form-label">Contact Person</label>
+                    <input type="text" name="contact_person" class="form-control" value="{{ fm.contact_person.value }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="designation" class="form-label">Designation</label>
+                    <input type="text" name="designation" class="form-control" value="{{ fm.designation.value }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="contact_phone" class="form-label">Contact Phone</label>
+                    <input type="tel" name="contact_phone" class="form-control" value="{{ fm.contact_phone.value }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="contact_email" class="form-label">Contact Email</label>
+                    <input type="email" name="contact_email" class="form-control" value="{{ fm.contact_email.value }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="fl_advisors_involved" class="form-label">FL Advisors Involved</label>
+                    <select name="fl_advisors_involved" class="form-select" multiple>
+                        {% for advisor in advisors %}
+                        <option value="{{ advisor }}" {% if advisor in fm.fl_advisors_involved.value %} selected {% endif %}> {{ advisor }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6 form-iteration">
+                    <label class="form-label">Attachments</label>
+                    <div class="attachments">
+                        {% for attachment in fm.attachments %}
+                        <input type="file" name="attachments" class="form-control-file mb-2">
+                        <a href="{{ attachment.file.url }}" download>{{ attachment.file.name }}</a><br>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-primary btn-sm mt-2" onclick="addAttachmentField()">Add Attachment</button>
+                </div>
+                <div class="col-12">
+                    <button class="btn btn-primary" type="submit">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

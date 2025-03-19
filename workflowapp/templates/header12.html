@@ -1,0 +1,208 @@
+{% load custom_tags %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css">
+    <!-- Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/css/bootstrap-datepicker.min.css">
+    {% block styles %}{% endblock %}
+
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+    
+        .content {
+            flex: 1;
+        }
+    
+        .footer {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            text-align: center;
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 300px;
+            background-color: #f8f9fa;
+        }
+
+        .position-sticky {
+            position: sticky;
+            top: 0;
+        }
+
+        .sidebar .nav .nav-link {
+            list-style: none;
+            text-decoration: none;
+        }
+
+        .sidebar .nav .nav-link:before {
+            content: "\f078";
+            font-family: "Font Awesome 5 Free";
+            font-weight: 900;
+            float: right;
+            margin-right: 10px;
+        }
+
+        .sidebar .nav .nav-link[aria-expanded="true"]:before {
+            transform: rotate(90deg);
+        }
+
+        .form-iteration {
+            margin-bottom: 20px;
+        }
+
+        .form-iteration .form-label {
+            font-weight: bold;
+        }
+
+        .form-iteration input[type="text"],
+        .form-iteration textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .form-iteration input[type="text"]:focus,
+        .form-iteration textarea:focus {
+            outline: none;
+            border-color: #85b7d9;
+            box-shadow: 0 0 5px #85b7d9;
+        }
+
+        .form-iteration .invalid-feedback {
+            color: red;
+            margin-top: 5px;
+        }
+
+        .form-iteration .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .form-iteration .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="javascript:history.back()">Back</a>
+                          </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/land">Home</a>
+                        </li>
+                        {% if user.is_authenticated %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Welcome, {{ user.username }}</a>
+                            </li>                        
+                            <li class="nav-item">
+                                <a class="nav-link" href="/logout">Logout</a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="/login">Login</a>
+                            </li>
+                        {% endif %}
+
+                        <!-- Add the notification icon here -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="/rev_view">
+                                <i class="fas fa-bell"></i> <!-- Font Awesome notification icon -->
+                            </a>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebar" class="sidebar">
+                <div class="position-sticky">
+                    <ul class="nav flex-column">
+                        {% if user.is_authenticated %}
+                            <!-- Collapsible Sidebar Items -->
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="collapse" href="#collapseEngagement" role="button"
+                                    aria-expanded="false" aria-controls="collapseEngagement">
+                                    More
+                                </a>
+                                <div class="collapse" id="collapseEngagement">
+                                    <ul class="nav flex-column">
+                                        <li><a class="nav-link" href="/gencase">Capture Records</a></li>
+                                        <li><a class="nav-link" href="/genview">My recored cases</a></li>
+                                        
+                                        <li><a class="nav-link" href="/rev_view">Cases to review </a></li>
+                                        <li><a class="nav-link" href="/revd_cases">My reviewed cases </a></li>
+                                    </ul>
+                                </div>
+                            </li>
+
+                        {% endif %}
+                        <!-- Add more sidebar navigation links here for other cases or default links -->
+                    </ul>
+                </div>
+            </nav>
+            <!-- Main Content Area -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="container mt-5">
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {% block scripts %}{% endblock %}
+
+    <!-- Script to toggle sidebar -->
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggler = document.getElementById('sidebarToggler');
+
+        toggler.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

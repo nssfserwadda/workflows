@@ -1,0 +1,132 @@
+<!-- employer_details.html -->
+
+{% extends "header10.html" %}
+
+{% load static %}
+
+{% block content %}
+    
+<h3>EMPLOYER ENGAGEMENT DETAILS</h3>
+
+<p><strong>Employer Number:</strong> {{ engagement.nssf_no }}</p>
+<p><strong>Employer Name:</strong> {{ engagement.employer_name }}</p>
+<p><strong>Created at:</strong> {{ engagement.modified_at }}</p>
+<p><strong>Action date:</strong> {{ engagement.action_date }}</p>
+<p><strong>Recorded by:</strong> {{ engagement.user }}</p>
+<p><strong>Activity Done:</strong> {{ engagement.activity_done }}</p>
+<p><strong>Status:</strong> {{ engagement.state }}</p>
+<p><strong>Comment:</strong> {{ engagement.comment }}</p>
+
+{% if attachments %}
+    <p><strong>Attachments:</strong></p>
+    <ul>
+    {% for attachment in attachments %}
+        <li><a href="{{ attachment.file.url }}" download>{{ attachment.file.name }}</a></li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+<h3>Review History</h3>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>User</th>
+      <th>Comment</th>
+      <th>Action</th>
+
+    </tr>
+  </thead>
+  <tbody>
+    {% for log in logs %}
+    <tr>
+      <td>{{ log.created_at }}</td>
+      <td>{{ log.user }}</td>
+      <td>{{ log.remark }}</td>
+      <td>{{ log.action }}</td>
+      <td>
+
+            
+        
+        
+    
+
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+{% if engagement.state == 'recorded' %}
+  <form method="POST">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label for="action">Action:</label>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="action" id="cancelAction" value="cancel">
+        <label class="form-check-label" for="cancelAction">
+          Cancel engagement record
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="action" id="forwardAction" value="forward">
+        <label class="form-check-label" for="forwardAction">
+          Forward engagement for review
+        </label>
+      </div>
+    </div>
+    <div id="reviewerField" style="display: none;">
+      <div class="form-group">
+        <label for="reviewer">Reviewer:</label>
+        <select class="form-control" name="reviewer" id="reviewer">
+          {% for user in supervisors %}
+            <option value="{{ user.id }}">{{ user.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary" type="submit">Submit</button>
+  </form>
+{% endif %}
+
+<script>
+  const cancelAction = document.getElementById('cancelAction');
+  const forwardAction = document.getElementById('forwardAction');
+  const reviewerField = document.getElementById('reviewerField');
+
+  cancelAction.addEventListener('change', function() {
+    reviewerField.style.display = 'none';
+  });
+
+  forwardAction.addEventListener('change', function() {
+    reviewerField.style.display = 'block';
+  });
+</script>
+
+
+
+
+
+
+
+
+<script src="{% static 'bootstrap/js/bootstrap.js' %}"></script>
+
+{% endblock %}
+
+
+
+
+
+

@@ -1,0 +1,122 @@
+{% extends "header19.html" %}
+
+{% load static %}
+{% load custom_tags %}
+{% block styles %}
+<!-- DataTables and Bootstrap CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
+
+<style>
+    /* Sticky Header Styling */
+    thead th {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background-color: #f8f9fa;
+    }
+
+    /* Table Container for Responsiveness */
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        margin: 0 auto;
+        max-width: 1200px;
+    }
+
+    /* Table Readability */
+    table.dataTable {
+        width: 100%;
+        margin: 0;
+        clear: both;
+    }
+
+    table.table td.nowrap,
+    table.table th.nowrap {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Adjust headline width to match table */
+    .alert {
+        width: 100%;
+    }
+
+    /* Margin for better layout */
+    .d-flex {
+        margin-top: 50px;
+        margin-left: 50px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Headline -->
+    <div class="alert alert-info text-center">
+        <strong>{{ headline }}</strong>
+    </div>
+
+    <!-- Search Form -->
+    <form method="GET" action="{% url 'susp_all' %}" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search for whistleblowers using either NSSF Number, Employer Name or WB Key" value="{{ query }}">
+            <div class="input-group-append">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Search Results Table -->
+    {% if search_results %}
+    <div class="table-container">
+        <table id="order-table" class="table table-striped table-bordered" data-show-export="true" data-toggle="table">
+            <thead>
+                <tr>
+                    <th>Member Name</th>
+                    <th>Employer NSSF Number</th>
+                    <th>Employer name</th>
+                    <th>contribution period</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in search_results %}
+                <tr>
+                    <td>{{ data.member_name }}</td>
+                    <td>{{ data.employerno }}</td>
+                    <td>{{ data.employer_name }}</td>
+                    <td>{{ data.end_date|date:"Y-m" }}</td>
+                    
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="alert alert-warning text-center">No results found.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- DataTables and Dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#order-table').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true,
+            "order": [[3, 'desc']], // Order by 'Date Created' column
+        });
+    });
+</script>
+{% endblock %}

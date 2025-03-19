@@ -1,0 +1,147 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+
+    <head>
+        <!-- Add your Bootstrap CDN links here -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+        <style>
+
+    
+            .container {
+                background: rgb(255, 255, 255); /* Set the background color of the form container */
+                padding: 20px;
+                border-radius: 10px;
+                margin-top: 50px; /* Adjust the top margin as needed */
+            }
+        </style>
+    </head>
+
+
+
+    <body>
+
+    <div class="container">
+        <h2>Inspection Form</h2>
+        <form method="post" action="{% url 'outb' %}" class="form">
+            <div class="row">
+                <div class="col-md-6">
+                    <!-- First column of the form -->
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.channel.id_for_label }}">Inspection</label>
+                        {{ form.channel }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.customer_name.label_tag }}
+                        {{ form.customer_name }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.customer_contact.label_tag }}
+                        {{ form.customer_contact }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.nssf_number.label_tag }}
+                        {{ form.nssf_number }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.served_by.label_tag }}
+                        {{ form.served_by }}
+                    </div>
+
+
+
+                    
+                    <div class="mb-3">
+                        {{ form.branch.label_tag }}
+                        {{ form.branch }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.reason_for_visit.label_tag }}
+                        {{ form.reason_for_visit }}
+                    </div>
+
+          
+                    <!-- Second column of the form -->
+                    <div class="mb-3">
+                        <label for="{{ form.nps.id_for_label }}">On a scale of 0 to 10, would you refer our services to a family or a friend?</label>
+                        {{ form.nps }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.fcr_resolved.id_for_label }}">Was your query resolved?</label>
+                        {{ form.fcr_resolved }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.ces_easy.id_for_label }}">How easy was it for you to get what you wanted from NSSF?</label>
+                        {{ form.ces_easy }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.overall_satisfaction.label_tag }}
+                        {{ form.overall_satisfaction }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.greeting_and_enthusiasm.id_for_label }}">Standard Greeting and Enthusiasm (Empathy)? (20 Marks)</label>
+                        {{ form.greeting_and_enthusiasm }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.emotional_connection.id_for_label }}">Emotionally connected with the customer (Empathy)? (25 Marks)</label>
+                        {{ form.emotional_connection }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.resolution_and_professionalism.id_for_label }}">Resolution of Customer Query (Resolution and professionalism)? (35 Marks)</label>
+                        {{ form.resolution_and_professionalism }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.hold_procedure.id_for_label }}">Hold procedure (Resolution and professionalism)? (10 Marks)</label>
+                        {{ form.hold_procedure }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.call_closure.id_for_label }}">Call Closure (Resolution and professionalism)? (10 Marks)</label>
+                        {{ form.call_closure }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.zero_rated.id_for_label }}">Zero Rated?</label>
+                        {{ form.zero_rated }}
+                    </div>
+                    
+
+
+
+
+
+
+
+
+                    <div class="mb-3">
+                        <label for="{{ form.additional_comments.id_for_label }}">Any other thoughts or comments?</label>
+                        {{ form.additional_comments }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.verbatim_rating.id_for_label }}">Verbatim Rating</label>
+                        {{ form.verbatim_rating }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.front_office_reasons.id_for_label }}">Front Office Reasons</label>
+                        {{ form.front_office_reasons }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.back_office_reasons.id_for_label }}">Back Office Reasons</label>
+                        {{ form.back_office_reasons }}
+                    </div>
+
+                </div>
+            </div>            
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+
+    </div>
+</body>
+</html>

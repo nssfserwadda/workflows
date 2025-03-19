@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Sector Classification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 4px;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>EMPLOYER SECTORISATION</h1>
+        
+        <!-- Sample Table Section -->
+        <div class="section">
+            <h3>Sample Data Format:</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>NAMES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>John.G Advocates</td>
+                    </tr>
+                    <tr>
+                        <td>Little Flowers Academy</td>
+                    </tr>
+                    <tr>
+                        <td>KK and Associates</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+        </div>
+
+
+
+
+        <!-- File Upload Form Section -->
+        <div class="section">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div>
+                    <label for="file">Choose a file:</label>
+                    <input type="file" name="file" id="file" required>
+                </div>
+                <br>
+                <button type="submit" class="btn">Upload & Predict</button>
+            </form>
+        </div>
+
+        <!-- Success Message and Download Button Section -->
+        {% if message %}
+        <div class="section">
+            <p class="success">{{ message }}</p>
+            <form method="get" action="{% url 'download_results' %}">
+                <button type="submit" class="btn">Download Results</button>
+            </form>
+        </div>
+        {% endif %}
+
+                <!-- Error Message Section -->
+                {% if error_message %}
+                <div class="section">
+                    <p class="error" style="color: red; font-weight: bold;">{{ error_message }}</p>
+                </div>
+                {% endif %}
+    </div>
+</body>
+</html>

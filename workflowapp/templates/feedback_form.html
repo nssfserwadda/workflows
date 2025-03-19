@@ -1,0 +1,129 @@
+<!-- feedback_form.html -->
+
+<!DOCTYPE html>
+
+
+
+<html lang="en" >
+
+<head>
+  <meta charset="UTF-8">
+  <title>simple star rating</title>
+
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+
+
+{% block content %}
+  <div style="max-width: 600px; margin: auto;">
+    <h4>Dear Member</h4>
+    <p>You recently interacted with the National Social Security Fund (NSSF). We value your feedback to help us improve our services. Please take a moment to rate your experience using the following scales:</p>
+    
+    <form method="post" action="{% url 'submit_feedback2' %}">
+      {% csrf_token %}
+  
+
+        <div>
+            <h6>Was your query resolved?</h6>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="fcr_resolved" id="inlineCheckbox1" value="1">
+              <label class="form-check-label" for="inlineCheckbox1"> Yes</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="fcr_resolved" id="inlineCheckbox2" value="0">
+              <label class="form-check-label" for="inlineCheckbox2">No</label>
+            </div>
+          </div>
+
+          <div>
+            <h6>On a scale of 0 to 10, would you refer our services to a family or a friend?</h6>
+            <label>
+              <input type="radio" name="nps_rating" value="0"> 😞 
+            </label>
+            <label>
+              <input type="radio" name="nps_rating" value="1"> 😞
+            </label>
+            <label>
+              <input type="radio" name="nps_rating" value="2"> 😞 
+            </label>
+            <label>
+              <input type="radio" name="nps_rating" value="3"> 😞
+            </label>
+            <label>
+              <input type="radio" name="nps_rating" value="4"> 😞
+            </label>
+            <label>
+              <input type="radio" name="nps_rating" value="5"> 😞
+            </label>
+            <label>
+              <input type="radio" name="nps_rating" value="6"> 😐
+            </label>
+            <label>
+              <input type="radio" name="nps_rating" value="7"> 😐
+            </label>
+            <label>
+              <input type="radio" name="nps_rating" value="8"> 😐
+            </label>
+            <label>
+              <input type="radio" name="nps_rating" value="9"> 😊
+            </label>
+            <label>
+              <input type="radio" name="nps_rating" value="10"> 😊
+            </label>
+          </div>
+          
+
+    
+        <div>
+            <h6>How easy was it for you to get what you wanted from NSSF?</h6>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="ces_easy" id="inlineCheckbox1" value="1">
+              <label class="form-check-label" for="inlineCheckbox1"> Very hard</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="ces_easy" id="inlineCheckbox2" value="2">
+              <label class="form-check-label" for="inlineCheckbox2">Hard</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="ces_easy" id="inlineCheckbox2" value="3">
+                <label class="form-check-label" for="inlineCheckbox2">Easy</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="ces_easy" id="inlineCheckbox2" value="4">
+                <label class="form-check-label" for="inlineCheckbox2">Very easy</label>
+              </div>
+          </div>
+
+          <div>
+            <h6>How satisfied are you with our services?</h6>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="overall_satisfaction" id="inlineCheckbox1" value="1">
+              <label class="form-check-label" for="inlineCheckbox1"> Satisfied</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="overall_satisfaction" id="inlineCheckbox2" value="0">
+              <label class="form-check-label" for="inlineCheckbox2">Not Satisfied</label>
+            </div>
+          </div>
+
+
+      <div>
+        <h6>Is there anything else you would like to share with us?</h6>
+        <textarea name="additional_comments" rows="4" style="width: 100%;"></textarea>
+      </div>
+
+      <button type="submit">Submit Feedback</button>
+    </form>
+
+    <p>Thank you for taking the time to provide us with your feedback. Your input is highly valuable to us and will help us serve you better.</p>
+  </div>
+{% endblock %}
+
+</body>
+
+</html>

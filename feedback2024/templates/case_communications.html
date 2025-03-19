@@ -1,0 +1,294 @@
+{% extends "header15.html" %}
+
+{% load static %}
+
+{% block styles %}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        margin: 10px auto;
+        max-width: 90%;
+        
+        background-color: #ffffff;
+        border-radius: 8px;
+        
+    }
+
+    h1, h2 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .table {
+        width: 100%;
+        background-color: #f9f9f9;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+
+    table.table th, table.table td {
+        font-size: 14px;
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #007bff;
+        color: black;
+        white-space: nowrap;
+    }
+
+    td a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    td a:hover {
+        text-decoration: underline;
+    }
+
+    .btn {
+        background-color: #007bff;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background-color: #0056b3;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        transition: opacity 0.3s ease;
+    }
+
+    .modal-content {
+        background-color: #fff;
+        margin: 15% auto;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        width: 80%;
+        max-width: 600px;
+    }
+
+    .close-modal, .close {
+        float: right;
+        cursor: pointer;
+        font-size: 20px;
+        color: #333;
+    }
+
+    .comments-list {
+        margin-top: 20px;
+        padding-left: 0;
+    }
+
+    .comment {
+        margin-bottom: 10px;
+        padding: 10px;
+        background-color: #f0f0f0;
+        border-radius: 5px;
+    }
+
+    .comment strong {
+        color: #333;
+    }
+
+    hr {
+        border-top: 1px solid #ccc;
+    }
+
+    @media (max-width: 767.98px) {
+        .col-sm-4, .col-sm-7 {
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+
+        .modal-content {
+            width: 90%;
+        }
+    }
+
+    details summary {
+        cursor: pointer;
+        font-weight: bold;
+        color: #007bff;
+    }
+
+    details summary:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %} text-center">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Whistleblower Case Details -->
+        <div class="col-lg-5 col-md-6 bordered-col">
+            <h5>Whistleblower Case Details</h5>
+            <table class="table table-bordered">
+                <tbody>
+                    <tr><th>Key</th><td>{{ whistleblower.key }}</td></tr>
+                    <tr><th>NSSF Number</th><td>{{ whistleblower.nssf_number }}</td></tr>
+                    <tr><th>Type</th><td>{{ whistleblower.type }}</td></tr>
+                    <tr><th>Company Number</th><td>{{ whistleblower.company_number }}</td></tr>
+                    <tr><th>Company Name</th><td>{{ whistleblower.company_name }}</td></tr>
+                    <tr><th>Created On</th><td>{{ whistleblower.created_on }}</td></tr>
+                    <tr><th>Short Title</th><td>{{ whistleblower.short_title }}</td></tr>
+                    <tr><th>Description</th><td>{{ whistleblower.description }}</td></tr>
+                    <tr><th>Other Info</th><td>{{ whistleblower.other_info }}</td></tr>
+                    <tr><th>Status</th><td>{{ whistleblower.status }}</td></tr>
+                    <tr><th>Auditor Name</th><td>{{ whistleblower.auditor_name }}</td></tr>
+                    <tr><th>Updated Contact</th><td>{{ whistleblower.updated_member_contact }}</td></tr>
+                    <tr><th>Updated Email</th><td>{{ whistleblower.updated_member_email }}</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Edit Whistleblower Entry and Actions/Comments -->
+        <div class="col-lg-6 bordered-col mx-3">
+            <h5>Actions</h5>
+            <div class="d-flex justify-content-between mb-4">
+                <button type="button" class="btn btn-secondary flex-fill me-2" id="open-sms-modal">Send SMS</button>
+                <button type="button" class="btn btn-secondary flex-fill me-2" id="open-email-modal">Send Email</button>
+                <button type="button" class="btn btn-secondary flex-fill" id="open-edit-modal">Update contacts</button>
+            </div>
+            
+            <h5>Previous Interactions</h5>
+            <div class="comments-list">
+                {% for comment in comments %}
+                    <div class="border p-2 mb-2 rounded bg-light">
+                        <details>
+                            <summary>Message on {{ comment.date_added }}</summary>
+                            <p><strong>Date:</strong> {{ comment.date_added }} 
+                            <strong>Mode:</strong> {{ comment.comment_mode }} 
+                            <strong>By:</strong> {{ comment.user }} 
+                            <strong>Contact:</strong> {{ comment.receiver_phone }} 
+                            <strong>Email:</strong> {{ comment.receiver_email }}</p>
+                            <p><strong>Message:</strong> {{ comment.comment }}</p>
+                        </details>
+                        <hr>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Whistleblower Entry Modal -->
+<div id="edit-modal" class="modal">
+    <div class="modal-content">
+        <span id="close-edit-modal" class="close">&times;</span>
+        <h5 class="text-center">Update Whistleblower Contact Details</h5>
+        <form method="post" class="p-4 bg-light rounded shadow mb-4">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="id_updated_member_email" class="form-label">Updated Member Email</label>
+                <input type="email" name="updated_member_email" id="id_updated_member_email" class="form-control" value="{{ form.updated_member_email.value|default:'' }}" >
+            </div>
+
+            <div class="mb-3">
+                <label for="id_updated_member_contact" class="form-label">Updated Member Contact</label>
+                <input type="text" name="updated_member_contact" id="id_updated_member_contact" class="form-control" value="{{ form.updated_member_contact.value|default:'' }}" >
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100" name="update">Update</button>
+        </form>
+    </div>
+</div>
+
+<!-- SMS Modal -->
+<div id="sms-modal" class="modal">
+    <div class="modal-content">
+        <span id="close-sms-modal" class="close">&times;</span>
+        <h5 class="text-center">Send SMS</h5>
+        <form method="post" class="p-4 bg-light rounded shadow mb-4">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="sms_message" class="form-label">SMS Message</label>
+                <textarea name="sms_message" id="sms_message" rows="4" class="form-control" placeholder="Enter your message here" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-100" name="send_sms">Send</button>
+        </form>
+    </div>
+</div>
+
+<!-- Email Modal -->
+<div id="email-modal" class="modal">
+    <div class="modal-content">
+        <span id="close-email-modal" class="close">&times;</span>
+        <h5 class="text-center">Send Email</h5>
+        <form method="post" class="p-4 bg-light rounded shadow mb-4">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="email_message" class="form-label">Email Message</label>
+                <textarea name="email_message" id="email_message" rows="4" class="form-control" placeholder="Enter your message here" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-100" name="send_email">Send</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#open-edit-modal').click(function() {
+            $('#edit-modal').fadeIn();
+        });
+
+        $('#close-edit-modal').click(function() {
+            $('#edit-modal').fadeOut();
+        });
+
+        $('#open-sms-modal').click(function() {
+            $('#sms-modal').fadeIn();
+        });
+
+        $('#close-sms-modal').click(function() {
+            $('#sms-modal').fadeOut();
+        });
+
+        $('#open-email-modal').click(function() {
+            $('#email-modal').fadeIn();
+        });
+
+        $('#close-email-modal').click(function() {
+            $('#email-modal').fadeOut();
+        });
+    });
+</script>
+{% endblock %}

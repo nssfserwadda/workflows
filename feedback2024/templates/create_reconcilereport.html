@@ -1,0 +1,15 @@
+<!-- your_app_name/templates/create_reconcilereport.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Reconcilereport</title>
+</head>
+<body>
+    <h1>Create Reconcilereport</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

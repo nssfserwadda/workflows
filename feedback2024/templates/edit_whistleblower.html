@@ -1,0 +1,244 @@
+{% extends "header15.html" %}
+
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+<style>
+    /* Existing styles... */
+    table.table {
+        border: none;
+    }
+
+    table.table td,
+    table.table th {
+        border: none;
+        font-size: 10px;
+    }
+
+    table.table td,
+    table.table th {
+        padding: 0;
+        font-size: 10px;
+    }
+
+    .row .col-sm-4,
+    .row .col-sm-7 {
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .row .col-sm-1 {
+        padding: 0;
+    }
+
+    .container {
+        overflow-x: hidden;
+        max-width: 95%;
+    }
+
+    .bordered-col {
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        overflow: auto;
+        max-height: 900px;
+        max-width: 100%;
+    }
+
+    .table-container table td,
+    .table-container table th {
+        white-space: nowrap;
+    }
+
+    .btn {
+        font-size: 10px;
+        padding: 4px 8px;
+        line-height: 1;
+    }
+
+    @media (max-width: 767.98px) {
+        .col-sm-4,
+        .col-sm-7 {
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-success text-center">
+        {{message}}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="row g-6"> 
+        <div class="col-4 bordered-col mx-3">
+            <h2>Other Details</h2>
+            <p><strong>Key:</strong> {{ whistleblower.key }}</p>
+            <p><strong>NSSF Number:</strong> {{ whistleblower.nssf_number }}</p>
+            <p><strong>Type:</strong> {{ whistleblower.type }}</p>
+            <p><strong>Company Number:</strong> {{ whistleblower.company_number }}</p>
+            <p><strong>Company Name:</strong> {{ whistleblower.company_name }}</p>
+            <p><strong>Created On:</strong> {{ whistleblower.created_on }}</p>
+            <p><strong>Short Title:</strong> {{ whistleblower.short_title }}</p>
+            <p><strong>Description:</strong> {{ whistleblower.description }}</p>
+            <p><strong>Other Info:</strong> {{ whistleblower.other_info }}</p>
+            <p><strong>Auditor Name:</strong> {{ whistleblower.auditor_name }}</p>
+            
+            
+            
+            <p><strong>Profile:</strong> {{ whistleblower.case_profiling_result }}</p>
+            <p><strong>CRM:</strong> {{ whistleblower.CRM_case_number }}</p>
+            <p><strong>Status:</strong> {{ whistleblower.status }}</p>
+            <p><strong>Review Status:</strong> {{ review_status2 }}</p>
+            <p><strong>Confirmed Status:</strong> {{ confirmed_status2 }}</p>
+            <p><strong>Status Comment:</strong> {{ comment2 }}</p>
+
+
+
+ 
+
+
+
+            
+        </div>
+
+        <div class="col-4 bordered-col mx-3">
+            <h1>Edit Whistleblower Entry</h1>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" name="update">Update</button>
+            </form>
+        </div>
+
+        <div class="col-3 bordered-col mx-3">
+            <h2>Actions</h2>
+            <button type="button" id="open-sms-modal">Send SMS</button>
+            <button type="button" id="open-email-modal">Send Email</button>
+
+            <h3>Previous Comments</h3>
+            <div class="comments-list">
+                {% for comment in comments %}
+                <div class="comment">
+                    <p><strong>Date:</strong> {{ comment.date_added }}</p>
+                    <p><strong>Comment:</strong> {{ comment.comment }}</p>
+                    <p><strong>By:</strong> {{ comment.from_user_id }}</p>
+                    <p><strong>Mode:</strong> {{ comment.comment_mode }}</p>
+                    <p><strong>Contact:</strong> {{ comment.receiver_phone }}</p>
+                    <p><strong>Email:</strong> {{ comment.receiver_email }}</p>
+                    
+                </div>
+                <hr>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SMS Modal -->
+<div id="sms-modal" class="modal">
+    <div class="modal-content">
+        <span id="close-sms-modal" style="float:right;">&times;</span>
+        <h2>Send SMS</h2>
+        <form id="sms-form">
+            {% csrf_token %}
+            <textarea name="sms_message" rows="4" cols="50" placeholder="Enter your message here" required></textarea><br>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+</div>
+
+<!-- Email Modal -->
+<div id="email-modal" class="modal">
+    <div class="modal-content">
+        <span id="close-email-modal" style="float:right;">&times;</span>
+        <h2>Send Email</h2>
+        <form id="email-form">
+            {% csrf_token %}
+            <textarea name="email_message" rows="4" cols="50" placeholder="Enter your message here" required></textarea><br>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // DataTable initialization
+        // ...
+
+        // Modal functionality
+        $('#open-sms-modal').click(function() {
+            $('#sms-modal').show();
+        });
+
+        $('#open-email-modal').click(function() {
+            $('#email-modal').show();
+        });
+
+        $('#close-sms-modal').click(function() {
+            $('#sms-modal').hide();
+        });
+
+        $('#close-email-modal').click(function() {
+            $('#email-modal').hide();
+        });
+
+        // SMS form submission
+        $('#sms-form').submit(function(e) {
+            e.preventDefault();
+            $.post("{% url 'editwb' whistleblower.pk %}", $(this).serialize() + '&send_sms=1', function(response) {
+                alert(response.message);
+                $('#sms-modal').hide();
+            }, 'json');
+        });
+
+        // Email form submission
+        $('#email-form').submit(function(e) {
+            e.preventDefault();
+            $.post("{% url 'editwb' whistleblower.pk %}", $(this).serialize() + '&send_email=1', function(response) {
+                alert(response.message);
+                $('#email-modal').hide();
+            }, 'json');
+        });
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Existing JavaScript for other functionalities...
+</script>
+{% endblock %}

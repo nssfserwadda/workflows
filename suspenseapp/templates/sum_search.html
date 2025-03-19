@@ -1,0 +1,148 @@
+
+
+
+
+
+
+{% extends "header19.html" %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+<style>
+    /* Adjust the border width and color for the table */
+    table.table {
+        border: none;
+    }
+
+    /* Adjust the border width and color for the table cells */
+    table.table td,
+    table.table th {
+        border: none;
+        font-size: 10px;
+    }
+
+    /* Remove the default table cell padding */
+    table.table td,
+    table.table th {
+        padding: 0;
+        font-size: 10px;
+    }
+
+    /* Add borders to the columns under col-sm-4 and col-sm-8 */
+    .bordered-col {
+        border: none;
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        overflow: auto; /* Enable overflow scrolling */
+        max-height: 900px; /* Set a maximum height for the container to trigger scrolling */
+        max-width: 100%
+    }
+
+    /* Ensure content fits on one page */
+    .container {
+        overflow-x: hidden;
+    }
+
+    /* Adjust the width of the container if needed */
+    .container {
+        max-width: 95%; /* Change the max-width value if necessary */
+    }
+
+    /* Prevent text wrapping in table cells */
+    .table-container table td,
+    .table-container table th {
+        white-space: nowrap;
+    }
+
+    /* Adjust button size */
+    .btn {
+        font-size: 10px;
+        padding: 4px 8px; /* Adjust padding to fit smaller buttons */
+        line-height: 1; /* Ensure button height matches font size */
+    }
+
+    /* Override Bootstrap styles for smaller screens */
+    @media (max-width: 767.98px) {
+        .col-sm-4,
+        .col-sm-7 {
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+    }
+    /* Add space below the form */
+    .my-form {
+        margin-bottom: 30px; /* Adjust the value to control the space */
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-success text-center">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    <div class="row">
+
+
+
+
+
+
+        
+
+
+                
+
+
+                <form method="GET" action="{% url 'sum_search' %}">
+                    <input type="text" name="query" value="{{ query }}" placeholder="Search Suspense Summary..." required>
+                    <button type="submit">Search</button>
+                </form>
+                
+                {% if results %}
+                    <h2>Search Results</h2>
+                    <table border="1">
+                        <tr>
+                            <th>Employer No</th>
+                            <th>Employer Name</th>
+                            <th>Total Suspense Contribution</th>
+                            <th>Records Count</th>
+                            <th>From Date</th>
+                            <th>To Date</th>
+                            <th>Scope Months</th>
+                        </tr>
+                        {% for result in results %}
+                        <tr>
+                            <td>{{ result.employerno }}</td>
+                            <td>{{ result.employer_name }}</td>
+                            <td>{{ result.total_suspense_contr }}</td>
+                            <td>{{ result.records_count }}</td>
+                            <td>{{ result.from_date }}</td>
+                            <td>{{ result.to_date }}</td>
+                            <td>{{ result.scope_months }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                {% else %}
+                    <p>No results found.</p>
+                {% endif %}
+
+
+
+
+
+
+                <!-- Your Table -->
+
+
+    </div>
+</div>
+{% endblock %}
+

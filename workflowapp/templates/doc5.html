@@ -1,0 +1,99 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Star Rating Form</title>
+
+<style>
+
+body {
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    text-align: center;
+}
+
+.rating {
+    margin-top: 20px;
+}
+
+.star {
+    font-size: 24px;
+    cursor: pointer;
+}
+</style>
+
+<script>
+
+    // script.js
+const ratingContainer = document.getElementById('rating-container');
+const submitBtn = document.getElementById('submitBtn');
+let selectedRating = 0;
+
+// Function to create star icons
+function createStar(index) {
+    const star = document.createElement('span');
+    star.innerHTML = '&#9733;';  // Unicode character for a star
+    star.className = 'star';
+    star.addEventListener('click', () => handleStarClick(index));
+    return star;
+}
+
+// Function to handle star clicks
+function handleStarClick(index) {
+    selectedRating = index + 1;
+    highlightStars(index);
+}
+
+// Function to highlight selected stars
+function highlightStars(index) {
+    const stars = document.querySelectorAll('.star');
+    stars.forEach((star, i) => {
+        star.style.color = i <= index ? 'gold' : 'gray';
+    });
+}
+
+// Function to initialize the star rating
+function initStarRating() {
+    for (let i = 0; i < 5; i++) {
+        const star = createStar(i);
+        ratingContainer.appendChild(star);
+    }
+}
+
+// Function to handle form submission
+function handleSubmit() {
+    // You can send the selectedRating to your server for storage
+    console.log('Rating submitted:', selectedRating);
+    alert('Thank you for your feedback!');
+}
+
+// Event listeners
+submitBtn.addEventListener('click', handleSubmit);
+
+// Initialize the star rating on page load
+initStarRating();
+
+</script>
+
+</head>
+<body>
+    <div class="container">
+        <h2>Feedback Form</h2>
+        <div class="rating" id="rating-container">
+            <!-- Star rating icons will be added dynamically here -->
+        </div>
+        <button id="submitBtn">Submit Feedback</button>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

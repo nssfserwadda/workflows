@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>State Log List</title>
+</head>
+<body>
+    <h1>State Log List</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>State</th>
+                <th>Timestamp</th>
+                <th>By</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for state_log in state_logs %}
+                <tr>
+                    <td>{{ state_log.state }}</td>
+                    <td>{{ state_log.timestamp }}</td>
+                    <td>{{ state_log.user }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

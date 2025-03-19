@@ -1,0 +1,89 @@
+{% extends "headerlegal.html" %}
+{% load static %}
+
+{% block styles %}
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Court Hearing Calendar</h2>
+
+    <!-- Calendar Element -->
+    <div id="calendar"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',  // Default view (month)
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: [
+                {% for event in events %}
+                {
+                    title: "{{ event.title }}",
+                    start: "{{ event.start }}",
+                    court: "{{ event.court }}",
+                    advocate: "{{ event.advocate }}",
+                    url: "{{ event.url }}",
+                    allDay: true
+                },
+                {% endfor %}
+            ],
+            eventDidMount: function(info) {
+                let eventDate = new Date(info.event.start);
+                let today = new Date();
+                let twoWeeksLater = new Date();
+                twoWeeksLater.setDate(today.getDate() + 14);
+
+                // Normalize time for accurate date comparison
+                today.setHours(0, 0, 0, 0);
+                twoWeeksLater.setHours(0, 0, 0, 0);
+                eventDate.setHours(0, 0, 0, 0);
+
+                if (eventDate <= today) {
+                    // 🔴 Event is overdue
+                    info.el.style.backgroundColor = "red";
+                    info.el.style.borderColor = "red";
+                } else if (eventDate <= twoWeeksLater) {
+                    // 🟠 Event is within two weeks
+                    info.el.style.backgroundColor = "orange";
+                    info.el.style.borderColor = "orange";
+                } else {
+                    // 🟢 Event is more than two weeks away
+                    info.el.style.backgroundColor = "green";
+                    info.el.style.borderColor = "green";
+                }
+            },
+            eventContent: function(arg) {
+                let title = document.createElement('div');
+                title.innerHTML = "<strong>" + arg.event.title + "</strong>";
+
+                let court = document.createElement('div');
+                court.innerHTML = "<small><strong>Court:</strong> " + arg.event.extendedProps.court + "</small>";
+
+                let advocate = document.createElement('div');
+                advocate.innerHTML = "<small><strong>Advocate:</strong> " + arg.event.extendedProps.advocate + "</small>";
+
+                return { domNodes: [title, court, advocate] };
+            }
+        });
+
+        calendar.render();
+    });
+</script>
+{% endblock %}

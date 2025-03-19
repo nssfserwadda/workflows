@@ -1,0 +1,98 @@
+{% extends "header13.html" %}
+
+{% load static %}
+
+{% block content %}
+
+
+
+<h1>Details</h1>
+
+<p><strong>NSSF Number:</strong> {{ forclosure.nssf_no }}</p>
+<p><strong>Employer:</strong> {{ forclosure.employer_name }}</p>
+<p><strong>State:</strong> {{ forclosure.state }}</p>
+<p><strong>Created at:</strong> {{ forclosure.created_at }}</p>
+<p><strong>Reason:</strong> {{ forclosure.reason }}</p>
+<p><strong>Remark:</strong> {{ forclosure.remark }}</p>
+<p><strong>Initiator:</strong> {{ forclosure.user }}</p>
+
+
+{% if forclosure.state == 'initiated' %}
+  <form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="review_comment">review_comment:</label>
+      <textarea class="form-control" name="review_comment" id="review_comment"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="action">Action:</label>
+      <select class="form-control" name="action" id="action">
+        <option value="first_review">Submit for initial review</option>
+        <option value="cancel">Cancel</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" type="submit">Submit</button>
+  </form>
+{% endif %}
+
+
+{% if forclosure.state == 'first_reviewed' %}
+  <form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="review_comment">review_comment:</label>
+      <textarea class="form-control" name="review_comment" id="review_comment"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="action">Action:</label>
+      <select class="form-control" name="action" id="action">
+        <option value="second_review">Submit for second level review</option>
+        <option value="reverse">Return to initiator</option>
+        <option value="reject">Reject closure request</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" type="submit">Submit</button>
+  </form>
+{% endif %}
+
+{% if forclosure.state == 'assigned' %}
+  <form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="review_comment">review_comment:</label>
+      <textarea class="form-control" name="review_comment" id="review_comment"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="action">Action:</label>
+      <select class="form-control" name="action" id="action">
+        <option value="approve">Approve Request</option>
+        <option value="reverse">Return to initiator</option>
+        <option value="reject">Reject closure request</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" type="submit">Submit</button>
+  </form>
+{% endif %}
+
+{% if forclosure.state == 'reversed' %}
+  <form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="review_comment">review_comment:</label>
+      <textarea class="form-control" name="review_comment" id="review_comment"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="action">Action:</label>
+      <select class="form-control" name="action" id="action">
+        <option value="first_review">Resubmit Request</option>
+        <option value="cancel">Cancel request</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" type="submit">Submit</button>
+  </form>
+{% endif %}
+
+<script src="{% static 'bootstrap/js/bootstrap.js' %}"></script>
+
+
+{% endblock %}

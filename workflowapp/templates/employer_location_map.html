@@ -1,0 +1,36 @@
+<!-- employer_location_map.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employer Location Map</title>
+    <!-- Include your mapping library's JavaScript and CSS -->
+    <!-- For example, Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body>
+    <h1>Search for Employer by Employer Number</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="nssf_no">Employer Number:</label>
+        <input type="text" id="nssf_no" name="nssf_no" required>
+        <button type="submit">Search</button>
+    </form>
+    {% if employer %}
+        <h2>Employer Location:</h2>
+        <div id="map" style="height: 400px;"></div>
+        <script>
+            // Initialize the map
+            var map = L.map('map').setView([{{ employer.location_latitude }}, {{ employer.location_longitude }}], 13);
+            // Add a tile layer (e.g., OpenStreetMap)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19
+            }).addTo(map);
+            // Add a marker for the employer's location
+            L.marker([{{ employer.location_latitude }}, {{ employer.location_longitude }}]).addTo(map);
+        </script>
+    {% elif error_message %}
+        <p>{{ error_message }}</p>
+    {% endif %}
+</body>
+</html>

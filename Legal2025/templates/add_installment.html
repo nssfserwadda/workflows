@@ -1,0 +1,124 @@
+{% extends "headerlegal.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+    body {
+        overflow-x: hidden; /* prevent horizontal scrolling */
+    }
+
+    .alert-success {
+        background-color: #dff0d8;
+        color: #3c763d;
+        border-color: #d6e9c6;
+    }
+
+    .custom-submit-btn {
+        background-color: #bfcecebe;
+        color: #090909;
+    }
+</style>
+
+<body>
+    <div class="container stu mt-5">
+        {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'error' %}
+                <div class="alert alert-danger text-center">
+                    {{ message }}
+                </div>
+            {% else %}
+                <div class="alert alert-success text-center">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        <a class="btn btn-primary mb-3" href="{% url 'agreement_list' %}">
+            <i class="fa fa-list"></i> View All Agreements
+        </a>
+
+        <div class="row">
+            <div class="col-sm-12 text-left py-8">
+                <div class="alert alert-info text-center" style="font-weight: bold;">Add Installment to Agreement #{{ agreement.legal_file.nssf_number }}</div>
+                
+                <form method="POST" enctype="multipart/form-data" action="{% url 'add_installment' agreement.id %}" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <!-- Left Column -->
+                        <div class="col-sm-6">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>File Nssf Number</strong></label>
+                                <input type="text" class="form-control" value="{{ agreement.legal_file.nssf_number }}" disabled>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Installment Number</strong></label>
+                                {{ form.installment_number }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Date of Payment</strong></label>
+                                {{ form.date_of_payment }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Amount</strong></label>
+                                {{ form.amount }}
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="col-sm-6">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Description</strong></label>
+                                {{ form.description }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Status</strong></label>
+                                {{ form.status }}
+                            </div>
+
+                            <div id="payment-fields" style="display: none;">
+                                <div class="mb-3">
+                                    <label class="form-label"><strong>Transaction Reference Number</strong></label>
+                                    {{ form.transaction_reference_number }}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label"><strong>Payment Date</strong></label>
+                                    {{ form.payment_date }}
+                                </div>
+                            </div>
+
+                            <button class="btn btn-lg custom-submit-btn mt-3" type="submit">Submit Installment</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var statusField = document.getElementById("id_status");
+            var paymentFields = document.getElementById("payment-fields");
+
+            function togglePaymentFields() {
+                if (statusField.value === "PAID") {
+                    paymentFields.style.display = "block";
+                } else {
+                    paymentFields.style.display = "none";
+                }
+            }
+
+            statusField.addEventListener("change", togglePaymentFields);
+            togglePaymentFields();
+        });
+    </script>
+
+</body>
+{% endblock %}

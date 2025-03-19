@@ -1,0 +1,282 @@
+{% load custom_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css">
+    
+    <!-- Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+    <!-- Additional CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/css/bootstrap-datepicker.min.css">
+    {% block styles %}{% endblock %}
+
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        /* Sidebar styles */
+        .sidebar {
+            background-color: #f8f9fa;
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 80px;
+            transition: width 0.3s;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar .nav-item {
+            padding: 10px 20px;
+        }
+
+        .sidebar .nav-link {
+            color: #333;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+
+        .sidebar.collapsed .nav-link span {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-link i {
+            margin: 0 auto;
+        }
+
+        /* Sidebar Toggle Button */
+        #sidebarToggle {
+            position: fixed;
+            top: 10px;
+            left: 260px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 1001;
+            transition: left 0.3s;
+        }
+
+        .sidebar.collapsed + #sidebarToggle {
+            left: 90px;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 0px;
+            transition: margin-left 0.3s;
+        }
+
+        .collapsed ~ .main-content {
+            margin-left: 80px;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .container-fluid {
+            margin-top: 80px;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            text-align: center;
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+
+                    <ul class="navbar-nav ms-auto">
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="javascript:history.back()">Back</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="/wbview">Whistleblower Cases</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="/land">Home</a>
+                        </li>
+
+                        {% if user.is_authenticated %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Welcome, {{ user.username }}</a>
+                            </li>                        
+                            <li class="nav-item">
+                                <a class="nav-link" href="/logout">Logout</a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="/login">Login</a>
+                            </li>
+                        {% endif %}
+
+                    </ul>
+
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Sidebar -->
+
+    {% if user.is_authenticated %}
+    <!-- Collapsible Sidebar Items -->
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="collapse" href="#collapseEngagement" role="button"
+            aria-expanded="false" aria-controls="collapseEngagement">
+            More
+        </a>
+        <div class="collapse" id="collapseEngagement">
+            <ul class="nav flex-column">
+
+            {% if user|user_in_group:'Officers' %}
+                <li><a class="nav-link" href="/close">Initiate Closure Cases</a></li>
+                <li><a class="nav-link" href="/vq">My Initiated Cases</a></li>
+
+            {% endif %}
+            {% if user|user_in_group:'Supervisors' %}
+                <li><a class="nav-link" href="/sview">My Review Tasks</a></li>
+                <li><a class="nav-link" href="/all">All closure cases</a></li>
+                <!-- Add more links for the Supervisor group here -->
+            {% endif %}
+            {% if user|user_in_group:'Line managers' %}
+                <li><a class="nav-link" href="/lmview">Reviewed by supervisors</a></li>
+                <li><a class="nav-link" href="/sumarz">Cases per reviewer</a></li>
+                <li><a class="nav-link" href="/all">All closure cases</a></li>
+                <!-- Add more links for the Supervisor group here -->
+            {% endif %}
+            {% if user|user_in_group:'Assessors' %}
+                <li><a href="/asgnedview">My Review Tasks</a></li>
+                <!-- Add more links for the Supervisor group here -->
+            {% endif %}
+
+            </ul>
+        </div>
+    </li>
+
+{% endif %}
+
+
+
+
+
+
+
+
+    <nav id="sidebar" class="sidebar">
+        <ul class="nav flex-column">
+
+            {% if user|user_in_group:'WB reviewer' %}
+                
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/case_rev">
+                        <i class="fas fa-folder-open"></i> <span>Cases for review</span>
+                    </a>
+                </li>                
+                
+
+            {% endif %}
+
+            {% if user|user_in_group:'Auditors' or user|user_in_group:'WB profiler' %}
+
+            <li class="nav-item">
+                <a class="nav-link" href="/wbview">
+                    <i class="fas fa-folder-open"></i> <span>My WB Cases</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/nofedbk">
+                    <i class="fas fa-comment-slash"></i> <span>Pending feedback</span>
+                </a>
+            </li>
+
+
+            <li class="nav-item">
+                <a class="nav-link" href="/fedbk">
+                    <i class="fas fa-file-alt"></i> <span>Sent feedback</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="/clsd">
+                    <i class="fas fa-file-alt"></i> <span>Fully Settled Cases</span>
+                </a>
+            </li>
+            {% endif %}
+
+
+        </ul>
+    </nav>
+
+    <!-- Sidebar toggle button -->
+    <i class="fas fa-bars" id="sidebarToggle"></i>
+
+    <!-- Main Content -->
+    <div class="main-content container-fluid">
+        <div class="container mt-5">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Sidebar Toggle Script -->
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+
+        sidebarToggle.addEventListener('click', function () {
+            sidebar.classList.toggle('collapsed');
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

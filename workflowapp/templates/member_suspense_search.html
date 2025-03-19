@@ -1,0 +1,191 @@
+
+
+
+
+
+
+{% extends "header13.html" %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+<style>
+    /* Adjust the border width and color for the table */
+    table.table {
+        border: none;
+    }
+
+    /* Adjust the border width and color for the table cells */
+    table.table td,
+    table.table th {
+        border: none;
+        font-size: 10px;
+    }
+
+    /* Remove the default table cell padding */
+    table.table td,
+    table.table th {
+        padding: 0;
+        font-size: 10px;
+    }
+
+    /* Add borders to the columns under col-sm-4 and col-sm-8 */
+    .bordered-col {
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        overflow: auto; /* Enable overflow scrolling */
+        max-height: 900px; /* Set a maximum height for the container to trigger scrolling */
+        max-width: 100%
+    }
+
+    /* Ensure content fits on one page */
+    .container {
+        overflow-x: hidden;
+    }
+
+    /* Adjust the width of the container if needed */
+    .container {
+        max-width: 95%; /* Change the max-width value if necessary */
+    }
+
+    /* Prevent text wrapping in table cells */
+    .table-container table td,
+    .table-container table th {
+        white-space: nowrap;
+    }
+
+    /* Adjust button size */
+    .btn {
+        font-size: 10px;
+        padding: 4px 8px; /* Adjust padding to fit smaller buttons */
+        line-height: 1; /* Ensure button height matches font size */
+    }
+
+    /* Override Bootstrap styles for smaller screens */
+    @media (max-width: 767.98px) {
+        .col-sm-4,
+        .col-sm-7 {
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+    }
+    /* Add space below the form */
+    .my-form {
+        margin-bottom: 30px; /* Adjust the value to control the space */
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-success text-center">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    <div class="row">
+
+        <div class="col-sm-11 bordered-col mx-3">
+            <div class="table-container">
+
+                <h6>NSSF REGISTERED EMPLOYER WILD SEARCH ENGINE </h6>
+
+                
+
+                <form method="GET" action="" class="my-form">
+                    <div class="input-group flex-nowrap">
+                        <!-- Manually render the form field -->
+                        <input type="text" class="form-control" id="id_q" name="q" placeholder="Enter Name To search" aria-label="Name" aria-describedby="name-addon" value="{{ search_form.q.value|default:'' }}">
+                
+                        <!-- Submit button -->
+                        <button type="submit" class="btn btn-primary" id="name-addon">Search member</button>
+                    </div>
+                </form>
+                
+
+                <!-- Your Table -->
+                <table id="ordertable2" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>NSSF Number</th>
+                            <th>Registration date</th>
+                            <th>Type</th>
+                            <th>Role ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in results %}
+                        <tr>
+                            <td>{{ member.member_name }}</td>
+                            <td>{{ member.employerno }}</td>
+                            <td>{{ member.employer_name }}</td>
+                            <td>{{ member.end_date}}</td>
+                            <td>{{ member.init_member_suspense_contr}}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5">No results found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Custom sorting function for datetime column
+        jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+            "datetime-pre": function(a) {
+                return new Date(a).getTime();
+            },
+            "datetime-asc": function(a, b) {
+                return a - b;
+            },
+            "datetime-desc": function(a, b) {
+                return b - a;
+            }
+        });
+
+        $('#order-table').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true, // Enable responsive mode
+            "columnDefs": [
+                { "type": "datetime", "targets": 2 } // Set the datetime sorting type for the 'Created at' column
+            ],
+            "order": [[2, 'desc']] // Specify the column index for ordering (2 for the 'Created at' column)
+        });
+
+        $('#ordertable2').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true, // Enable responsive mode
+            "columnDefs": [
+                { "type": "datetime", "targets": 2 } // Set the datetime sorting type for the 'Created at' column
+            ],
+            "order": [[2, 'desc']] // Specify the column index for ordering (2 for the 'Created at' column)
+        });
+    });
+</script>
+{% endblock %}
+

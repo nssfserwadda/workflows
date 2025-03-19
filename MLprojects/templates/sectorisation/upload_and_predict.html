@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Company Sector Classification</title>
+</head>
+<body>
+    <h1>COMPANY SECTOR CLASSIFICATION TOOL</h1>
+    <p>Upload a file containing companies to be classified.</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="file">
+        <button type="submit">Upload and Predict</button>
+    </form>
+
+    {% if success %}
+        <p>Predicted sectors have been saved. <a href="{{ output_file_url }}">Download Here</a></p>
+    {% endif %}
+</body>
+</html>

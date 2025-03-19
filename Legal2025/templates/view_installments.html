@@ -1,0 +1,147 @@
+{% extends "headerlegal.html" %}
+
+{% load static %}
+{% load humanize %}
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
+
+<style>
+    thead th {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background-color: #f8f9fa;
+    }
+
+    table.dataTable {
+        width: 105%;
+        white-space: nowrap;
+    }
+
+    .d-flex {
+        margin-top: 50px;
+        margin-left: 30px;
+    }
+
+    .alert {
+        width: 105%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-success text-center">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="col-sm-12 p-3">
+        <div class="alert alert-info text-center flex-grow-1">Installments</div>
+        <a class="btn btn-primary mb-3" href="{% url 'agreement_list'  %}">
+            <i class="fa fa-list"></i> Back to Agreements
+        </a>
+        <table id="installments-table" class="table table-striped table-bordered" data-toggle="table">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>NSSF Number</th>
+                    <th>Employer Name</th>
+                    <th>Installment Amount</th>
+                    <th>Status</th>
+                    <th>Transaction Ref</th>
+                    <th>Payment Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for installment in installments %}
+                <tr>
+                    <td>{{ installment.custom_id  }}</td>
+                    <td>{{ installment.agreement.legal_file.nssf_number }}</td>
+                    <td>{{ installment.agreement.legal_file.employer_name }}</td>
+                    <td>{{ installment.amount|intcomma }}</td>
+                    <td>
+                        
+                        {% if installment.status == "PAID" %}
+                            <span class="badge badge-success">Fully Paid</span>
+                        {% elif installment.status == "PARTIALLY_PAID"%}
+                        <span class="badge badge-warning">Partially paid</span>
+                        {% else %}
+                            <span class="badge badge-danger">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if installment.payments.exists %}
+                            <ul>
+                                {% for payment in installment.payments.all %}
+                                    <li>{{ payment.transaction_reference_number }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if installment.payments.exists %}
+                            <ul>
+                                {% for payment in installment.payments.all %}
+                                    <li>{{ payment.payment_date }}</li>
+                                    
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    
+                    
+                    
+                    <!-- <td>{{ installment.transaction_reference_number|default:"-" }}</td>
+                    <td>{{ installment.payment_date|default:"-" }}</td> -->
+                    <td>
+                        {% if request.user.groups.all.0.name == "commercial" %}
+                        <a href="{% url 'update_installment' installment.id %}" class="text-warning ml-2" title="Update">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        
+                        <a href="{% url 'update_installment' installment.id %}" class="text-success ml-2" title="Mark as Paid">
+                            <i class="fas fa-check-circle"></i>
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'installment_detail' installment.id %}" class="text-warning ml-2" title="view">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                      
+                     
+                    
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#installments-table').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "order": [[7, 'desc']] // Sort by 'Payment Date' column (index 7)
+        });
+    });
+</script>
+{% endblock %}

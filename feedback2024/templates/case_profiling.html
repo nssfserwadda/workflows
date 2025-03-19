@@ -1,0 +1,192 @@
+{% extends 'header14.html' %}
+
+{% block content %}
+  <h2>Case Profiling for {{ whistleblower.key }}</h2>
+
+  <form method="post">
+    {% csrf_token %}
+    
+    <!-- BaseProfilingForm to choose the profiling option -->
+    <div>
+      <label for="id_profile">Choose Profiling Option:</label>
+      {{ form.profile }}
+    </div>
+
+    <!-- Dynamic fields will be loaded here based on the profiling option -->
+    <div id="dynamic-fields">
+      <!-- Display fields for 'Statement query' -->
+      {% if form.CRM_case_number %}
+        <div>
+          <label for="id_CRM_case_number">CRM Case Number:</label>
+          {{ form.CRM_case_number }}
+        </div>
+      {% endif %}
+
+      <!-- Display fields for 'Employer is not registered' -->
+      {% if form.updated_company_name %}
+        <div>
+          <label for="id_updated_company_name">Confirmed Employer Name:</label>
+          {{ form.updated_company_name }}
+        </div>
+      {% endif %}
+    </div>
+
+    <div>
+      <button type="submit">Submit</button>
+    </div>
+  </form>
+
+  <!-- Optional JavaScript to dynamically hide/show fields based on profiling choice -->
+  <script>
+    document.getElementById('id_profile').addEventListener('change', function() {
+      let choice = this.value;
+      let dynamicFields = document.getElementById('dynamic-fields');
+
+      // Clear current fields
+      dynamicFields.innerHTML = '';
+
+      // Dynamically load fields based on the selected profiling option
+      if (choice === 'Statement query') {
+        dynamicFields.innerHTML += `
+          <div>
+            <label for="id_CRM_case_number">CRM Case Number:</label>
+            <input type="text" name="CRM_case_number" id="id_CRM_case_number">
+          </div>
+        `;
+      } else if (choice === 'Employer is not registered') {
+        dynamicFields.innerHTML += `
+          <div>
+            <label for="id_updated_company_name">Confirmed Employer Name:</label>
+            <input type="text" name="updated_company_name" id="id_updated_company_name">
+          </div>
+        `;
+      } else if (choice === 'Employer is registered and member is known') {
+        dynamicFields.innerHTML += `
+          <div>
+            <label for="id_updated_company_number">Updated Company Number:</label>
+            <input type="text" name="updated_company_number" id="id_updated_company_number" required>
+          </div>
+          <div>
+            <label for="id_updated_company_name">Updated Company Name:</label>
+            <input type="text" name="updated_company_name" id="id_updated_company_name" required>
+          </div>
+          <div>
+            <label for="id_updated_member_contact">Updated Member Contact:</label>
+            <input type="text" name="updated_member_contact" id="id_updated_member_contact" required>
+          </div>
+          <div>
+            <label for="id_updated_nssf_number">Updated NSSF Number:</label>
+            <input type="text" name="updated_nssf_number" id="id_updated_nssf_number">
+          </div>
+          <div>
+            <label for="id_updated_member_name">Updated Member Name:</label>
+            <input type="text" name="updated_member_name" id="id_updated_member_name">
+          </div>
+          <div>
+            <label for="id_ongoing_audit">Ongoing Audit:</label>
+            <input type="checkbox" name="ongoing_audit" id="id_ongoing_audit">
+          </div>
+          <div id="ongoing_auditor_field" style="display: none;">
+            <label for="id_ongoing_auditor">Ongoing Auditor:</label>
+            <input type="text" name="ongoing_auditor" id="id_ongoing_auditor">
+          </div>
+          <div>
+            <label for="id_work_scope_known">Work Scope Known:</label>
+            <input type="checkbox" name="work_scope_known" id="id_work_scope_known">
+          </div>
+          <div id="work_scope_dates" style="display: none;">
+            <div>
+              <label for="id_updated_work_from_date">Updated Work From Date:</label>
+              <input type="date" name="updated_work_from_date" id="id_updated_work_from_date">
+            </div>
+            <div>
+              <label for="id_updated_work_to_date">Updated Work To Date:</label>
+              <input type="date" name="updated_work_to_date" id="id_updated_work_to_date">
+            </div>
+          </div>
+          <div>
+            <label for="id_audited_recently_or_in_legal">Audited Recently or in Legal:</label><br>
+            <input type="radio" name="audited_recently_or_in_legal" id="id_audited_recently_or_in_legal_yes" value="yes" required>
+            <label for="id_audited_recently_or_in_legal_yes">Yes</label><br>
+            <input type="radio" name="audited_recently_or_in_legal" id="id_audited_recently_or_in_legal_no" value="no" required>
+            <label for="id_audited_recently_or_in_legal_no">No</label>
+          </div>
+        `;
+      }
+
+      else if (choice === 'Employer is registered and member is anonymous') {
+        dynamicFields.innerHTML += `
+          <div>
+            <label for="id_updated_company_number">Updated Company Number:</label>
+            <input type="text" name="updated_company_number" id="id_updated_company_number" required>
+          </div>
+          <div>
+            <label for="id_updated_company_name">Updated Company Name:</label>
+            <input type="text" name="updated_company_name" id="id_updated_company_name" required>
+          </div>
+          <div>
+            <label for="id_ongoing_audit">Ongoing Audit:</label>
+            <input type="checkbox" name="ongoing_audit" id="id_ongoing_audit">
+          </div>
+          <div id="ongoing_auditor_field" style="display: none;">
+            <label for="id_ongoing_auditor">Ongoing Auditor:</label>
+            <input type="text" name="ongoing_auditor" id="id_ongoing_auditor">
+          </div>
+          <div>
+            <label for="id_work_scope_known">Work Scope Known:</label>
+            <input type="checkbox" name="work_scope_known" id="id_work_scope_known">
+          </div>
+          <div id="work_scope_dates" style="display: none;">
+            <div>
+              <label for="id_updated_work_from_date">Updated Work From Date:</label>
+              <input type="date" name="updated_work_from_date" id="id_updated_work_from_date">
+            </div>
+            <div>
+              <label for="id_updated_work_to_date">Updated Work To Date:</label>
+              <input type="date" name="updated_work_to_date" id="id_updated_work_to_date">
+            </div>
+          </div>
+          <div>
+            <label for="id_audited_recently_or_in_legal">Audited Recently or in Legal:</label><br>
+            <input type="radio" name="audited_recently_or_in_legal" id="id_audited_recently_or_in_legal_yes" value="yes" required>
+            <label for="id_audited_recently_or_in_legal_yes">Yes</label><br>
+            <input type="radio" name="audited_recently_or_in_legal" id="id_audited_recently_or_in_legal_no" value="no" required>
+            <label for="id_audited_recently_or_in_legal_no">No</label>
+          </div>
+        `;
+      }
+
+
+
+
+    // Show/hide auditor field based on ongoing_audit and make it mandatory
+    document.getElementById('id_ongoing_audit').addEventListener('change', function() {
+    let auditorField = document.getElementById('ongoing_auditor_field');
+    let auditorInput = document.getElementById('id_ongoing_auditor'); // assuming this is the input field
+    if (this.checked) {
+        auditorField.style.display = 'block';
+        auditorInput.setAttribute('required', 'required'); // Make auditor input mandatory
+    } else {
+        auditorField.style.display = 'none';
+        auditorInput.removeAttribute('required'); // Remove mandatory requirement if hidden
+    }
+    });
+
+    // Show/hide work scope dates based on work_scope_known and make them mandatory
+    document.getElementById('id_work_scope_known').addEventListener('change', function() {
+    let dateFields = document.getElementById('work_scope_dates');
+    let workFromDate = document.getElementById('id_updated_work_from_date'); // assuming these are the input fields
+    let workToDate = document.getElementById('id_updated_work_to_date');
+    if (this.checked) {
+        dateFields.style.display = 'block';
+        workFromDate.setAttribute('required', 'required'); // Make work from date mandatory
+        workToDate.setAttribute('required', 'required');   // Make work to date mandatory
+    } else {
+        dateFields.style.display = 'none';
+        workFromDate.removeAttribute('required'); // Remove mandatory requirement if hidden
+        workToDate.removeAttribute('required');   // Remove mandatory requirement if hidden
+    }
+    });
+    });
+  </script>
+{% endblock %}

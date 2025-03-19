@@ -1,0 +1,25 @@
+{% extends "header13.html" %}
+
+{% load static %}
+
+{% block content %}
+    <h1>Cases Per Reviewer</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>REVIEWER</th>
+                <th>Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in grouped_data %}
+            <tr>
+                <td>{{ group.next_action_user__username }}</td>
+                <td>{{ group.count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}

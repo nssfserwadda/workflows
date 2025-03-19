@@ -1,0 +1,268 @@
+{% extends "header15.html" %}
+
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+<style>
+    /* Table Styles */
+    table.table {
+        border: none;
+        width: 100%;
+    }
+
+    table.table td,
+    table.table th {
+        border: none;
+        font-size: 14px;
+        padding: 8px;
+        text-align: left;
+    }
+
+    /* Responsive layout */
+    .container {
+        max-width: 90%;
+        margin: 10px auto;
+        
+    }
+
+    /* Bordered columns for details and forms */
+    .bordered-col {
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: #fff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+    }
+
+    /* Heading styles */
+    h1, h2 {
+        color: #333;
+        font-size: 24px;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    p {
+        margin-bottom: 10px;
+    }
+
+    /* Buttons */
+    .btn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 8px 16px;
+        font-size: 14px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+        background-color: #45a049;
+    }
+
+    /* Alert styles */
+    .alert {
+        font-size: 14px;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    /* Form Styles */
+    form {
+        padding: 15px;
+    }
+
+    form input,
+    form select,
+    form textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+
+    @media (max-width: 767.98px) {
+        .bordered-col {
+            margin-bottom: 15px;
+        }
+
+        h1, h2 {
+            font-size: 20px;
+        }
+    }
+
+    .radio-inline {
+        display: flex;
+        justify-content: flex-start; /* Align the items horizontally */
+        gap: 40px; /* Add some space between the two radio options */
+    }
+
+    .radio-inline-option {
+        display: inline-flex;
+        align-items: center;
+        font-weight: normal;
+    }
+
+    input[type="radio"] {
+        margin-right: 10px; /* Space between the radio button and label text */
+    }
+
+    
+
+
+
+
+    
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if messages %}
+    {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %} text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
+  {% endif %}
+
+    <div class="row">
+        <!-- Whistleblower details -->
+        <div class="col-lg-8 col-md-6 bordered-col">
+            <h2>Whistleblower Case Details</h2>
+            <table class="table table-bordered">
+                <tbody>
+                    <tr>
+                        <th style="white-space: nowrap;">Key</th>
+                        <td>{{ whistleblower.key }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">NSSF Number</th>
+                        <td>{{ whistleblower.nssf_number }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Type</th>
+                        <td>{{ whistleblower.type }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Company Number</th>
+                        <td>{{ whistleblower.company_number }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Company Name</th>
+                        <td>{{ whistleblower.company_name }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Created On</th>
+                        <td>{{ whistleblower.created_on }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Short Title</th>
+                        <td>{{ whistleblower.short_title }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Description</th>
+                        <td>{{ whistleblower.description }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Other Info</th>
+                        <td>{{ whistleblower.other_info }}</td>
+                    </tr>
+
+
+                    <tr>
+                        <th style="white-space: nowrap;">Auditor Name</th>
+                        <td>{{ whistleblower.auditor_name }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Profile</th>
+                        <td>{{ whistleblower.case_profiling_result }}</td>
+                    </tr>
+
+                    <tr>
+                        <th style="white-space: nowrap;">CRM case number</th>
+                        <td>{{ whistleblower.CRM_case_number }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Status</th>
+                        <td>{{ latest_status }}</td>
+                    </tr>
+
+                    <tr></tr>
+                        <th style="white-space: nowrap;">Review Status</th>
+                        <td>{{ review_status2 }}</td>
+                    </tr>
+                    
+                    <tr>
+                        <th style="white-space: nowrap;">Confirmed Status</th>
+                        <td>{{ confirmed_status2 }}</td>
+                    </tr>
+                    <tr>
+                        <th style="white-space: nowrap;">Status Comment</th>
+                        <td>{{ comment2 }}</td>
+                    </tr>
+                    <tr>
+                    
+                    <th style="white-space: nowrap;">Attachments</th>
+                    <td>
+                    {% for attachment in attachments %}
+                    <li><a href="{{ attachment.file.url }}" download>{{ attachment.file.name }}</a></li>
+                    {% endfor %}
+
+
+
+                    
+                </td>
+                    
+
+
+
+
+
+                    
+                    </tr>
+
+
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Close Whistleblower Case Form -->
+        <div class="col-lg-4 col-md-6 bordered-col">
+            <h1 class="text-center">Review Status of Whistleblower Case</h1>
+            <form method="post" class="form-container">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="id_decision"><strong>Decision:</strong></label>
+                    {{ form.decision }} <!-- Renders the dropdown -->
+                </div>
+                
+                
+                <div class="form-group">
+                    <label for="id_comment"><strong>Comment (Optional):</strong></label>
+                    {{ form.comment }}
+                </div>
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </div>
+            </form>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script>
+    // Existing JavaScript for other functionalities
+</script>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends "header10.html" %}
+
+{% load static %}
+{% block content %} 
+
+<style>
+    .custom-submit-btn {
+      background-color: #bfcecebe; /* Replace with your desired color code */
+      color: #090909; /* Replace with the desired text color for the button */
+    }
+</style>
+
+<body>
+    <div class="container stu mt-5">
+
+        {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} text-center">
+                {{ message }}
+            </div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <div class="col-sm-12 text-left py-8">
+
+                <div class="alert alert-info text-center" style="font-weight: bold;">Record Employer Engagements</div>
+
+                <form method="POST" enctype="multipart/form-data" action="{% url 'engag' %}" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>NSSF No</strong><strong style="color: red;">*</strong></label>
+                                <input type="text" id="id_nssf_no" name="nssf_no" class="form-control" required>
+                                <div class="invalid-feedback">Please provide a valid NSSF No.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Employer Name</strong></label>
+                                <input type="text" id="employerNameInput" name="employer_name" class="form-control" required readonly>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Main Activity Done</strong></label>
+                                {{ fm.main_activity }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Activity Done<strong style="color: red;">*</strong></label>
+                                <select name="activity_done" class="form-control" multiple size="14">
+                                    {% for choice in fm.activity_done.field.choices %}
+                                        <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">{{ fm.activity_done.errors }}</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Reason For Non-compliance</strong></label>
+                                {{ fm.reason_for_non_compliance }}
+                            </div>
+                        </div>
+
+
+
+                            <div class="col-sm-6">
+                                {% for form in fm %}
+                                {% if form.name != "id" and form.name != "nssf_no" and form.name != "main_activity" and form.name != "activity_done" and form.name != "reason_for_non_compliance" and form.name != "reviewer" and form.name != "employer_name" and form.name != "attachments" %}
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ form.label }}</label>
+                                        {{ form }}
+                                        <div class="invalid-feedback">{{ form.errors }}</div>
+                                    </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                            
+
+
+                            <div class="mb-3">
+                                <label class="form-label">Attachments</label>
+                                <div class="attachments">
+                                    {{ fm.attachments }}
+                                </div>
+                                <button type="button" class="btn btn-primary btn-sm mt-2" onclick="addAttachmentField()">Add Attachment</button>
+                                {% for attachment in fm.attachments.value %}
+                                    <a href="{{ attachment.file.url }}" download>{{ attachment.file.name }}</a><br>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-lg custom-submit-btn mt-3" type="submit">Submit</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+    <script>
+        function addAttachmentField() {
+            var attachmentsDiv = document.querySelector('.attachments');
+            var newAttachmentField = document.createElement('input');
+            newAttachmentField.type = 'file';
+            newAttachmentField.name = 'attachments';
+            newAttachmentField.className = 'form-control-file mb-2';
+            newAttachmentField.accept = '.pdf,.doc,.docx,.txt';
+            attachmentsDiv.appendChild(newAttachmentField);
+        }
+
+        document.getElementById('id_nssf_no').addEventListener('blur', function() {
+            var nssfNo = this.value;
+            var employerNameInput = document.getElementById('employerNameInput');
+            if (nssfNo !== '') {
+                var url = '/get_employer_name/?nssf_no=' + nssfNo;
+                fetch(url)
+                    .then(response => response.text())
+                    .then(data => {
+                        employerNameInput.value = data;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            } else {
+                employerNameInput.value = '';
+            }
+        });
+    </script>
+
+    <script>
+        document.getElementById("id_main_activity").addEventListener("change", function() {
+            var selectedMainActivity = this.value;
+
+            var activityDoneField = document.getElementById("id_activity_done").closest(".mb-3");
+            var reasonForNonComplianceField = document.getElementById("id_reason_for_non_compliance").closest(".mb-3");
+            var commentField = document.getElementById("id_comment").closest(".mb-3");
+            var actionDateField = document.getElementById("id_action_date").closest(".mb-3");
+            var reviewerField = document.getElementById("id_reviewer").closest(".mb-3");
+
+            if (selectedMainActivity === "account4noncompliance") {
+                activityDoneField.style.display = "block";
+                reasonForNonComplianceField.style.display = "none";
+                commentField.style.display = "none";
+                actionDateField.style.display = "none";
+                reviewerField.style.display = "none";
+            } else if (selectedMainActivity === "member_reg") {
+                activityDoneField.style.display = "block";
+                reasonForNonComplianceField.style.display = "block";
+                commentField.style.display = "none";
+                actionDateField.style.display = "none";
+                reviewerField.style.display = "none";
+            } else {
+                activityDoneField.style.display = "block";
+                reasonForNonComplianceField.style.display = "none";
+                commentField.style.display = "block";
+                actionDateField.style.display = "none";
+                reviewerField.style.display = "none";                
+            }
+        });
+
+        document.getElementById("id_main_activity").dispatchEvent(new Event("change"));
+    </script>
+
+</body>
+{% endblock %}

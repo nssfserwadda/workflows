@@ -1,0 +1,230 @@
+{% extends "headerlegal.html" %}
+{% load static %}
+{% block content %}
+{% load humanize %}
+
+<div class="container stu mt-5">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %} text-center">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <a class="btn btn-primary mb-3" href="{% url 'installment_list' installment.agreement.id %}">
+        <i class="fa fa-list"></i> View Installments
+    </a>
+
+    <div class="row">
+        <!-- Left Side: Installment Details & Payment Form -->
+        <div class="col-md-7">
+            <h2>Edit Installment #{{ installment.id }} (Agreement: {{ installment.agreement.legal_file.employer_name }})</h2>
+
+            <p><strong>Status:</strong> {{ installment.get_status_display }}</p>
+            <p><strong>Total Amount:</strong> {{ installment.amount|intcomma }}</p>
+            <p><strong>Total Paid:</strong> {{ installment.get_total_paid|intcomma }}</p>
+            <p><strong>Pending Balance:</strong> {{ installment.get_pending_balance|intcomma }}</p>
+            <p><strong>Description:</strong> {{ installment.description }}</p>
+
+            <hr>
+
+            {% if installment.get_pending_balance == 0 %}
+                <p class="text-success"><strong>This installment is fully paid. No further payments required.</strong></p>
+            {% else %}
+                <form method="POST" action="{% url 'update_installment' installment.id %}">
+                    {% csrf_token %}
+
+                    <hr>
+
+                    <!-- TRN Input Field -->
+                    <form method="POST" action="{% url 'update_installment' installment.id %}">
+                        {% csrf_token %}
+                    
+                        <div class="mb-3">
+                            <label for="trn-input" class="form-label"><strong>Enter Transaction Reference Number (TRN):</strong></label>
+                            <input type="text" id="trn-input" class="form-control" name="transaction_reference_number" placeholder="Enter TRN">
+                        </div>
+                    
+                        <button class="btn btn-lg btn-primary mt-3" type="submit">Save TRN</button>
+                    </form>
+                    
+
+                    <!-- Loading Spinner & Status Message (Initially Hidden) -->
+                    <div id="loading-container" class="mt-3 text-center" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p id="loading-message" class="mt-2"><strong>Checking Database...</strong></p>
+                    </div>
+
+                    <!-- TRN Query Results -->
+                    <div id="trn-result" class="mt-3" style="display: none;">
+                        <p><strong>TRN Status:</strong> <span id="trn-status"></span></p>
+                        <p><strong>Total Payment:</strong> <span id="trn-amount"></span></p>
+                        <p><strong>Date of Payment:</strong> <span id="trn-dateofpayment"></span></p>
+                    </div>
+
+                    <!-- TRN Message Display (For no payments) -->
+                    <!-- <div id="trn-message" class="alert alert-warning mt-3" style="display: none;"></div> -->
+                    <!-- TRN Message Display (For duplicates or out-of-scope TRNs) -->
+                    <div id="trn-message" class="alert mt-3" style="display: none;"></div>
+                    <!-- TRN Message Display (For duplicates or out-of-scope TRNs) -->
+                    <!-- <div id="trn-message" class="alert mt-3" style="display: none;"></div> -->
+
+
+                    <!-- Payment Form (Auto Populated) -->
+                    <div id="payment-form-container" style="display: none;">
+                        <h4>Add New Payment</h4>
+                        <input type="hidden" name="installment" value="{{ installment.id }}">
+                        
+                        <div class="mb-3">
+                            <label for="trn-field" class="form-label"><strong>Transaction Reference Number (TRN):</strong></label>
+                            <input type="text" id="trn-field" class="form-control" name="transaction_reference_number" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="amount-paid" class="form-label"><strong>Amount Paid:</strong></label>
+                            <input type="text" id="amount-paid" class="form-control" name="amount_paid" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="payment-date" class="form-label"><strong>Payment Date:</strong></label>
+                            <input type="text" id="payment-date" class="form-control" name="payment_date" readonly>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-lg btn-primary mt-3" type="submit" name="save_all" id="save-button">Save Changes</button>
+                </form>
+            {% endif %}
+        </div>
+
+        <!-- Right Side: Payment History -->
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Payment History</h4>
+                </div>
+                <div class="card-body">
+                    {% if payments %}
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>TRN</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments %}
+                                <tr>
+                                    <td>{{ payment.transaction_reference_number }}</td>
+                                    <td>{{ payment.amount_paid|intcomma }}</td>
+                                    <td>{{ payment.payment_date }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No payments recorded yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    var checkTrnButton = document.getElementById("check-trn-button");
+    var trnInput = document.getElementById("trn-input");
+    var trnField = document.getElementById("trn-field");
+    var trnResult = document.getElementById("trn-result");
+    var trnStatus = document.getElementById("trn-status");
+    var trnAmount = document.getElementById("trn-amount");
+    var trnDateOfPayment = document.getElementById("trn-dateofpayment");
+    var paymentFormContainer = document.getElementById("payment-form-container");
+    var amountPaidInput = document.getElementById("amount-paid");
+    var paymentDateInput = document.getElementById("payment-date");
+    var trnMessage = document.getElementById("trn-message");
+    var saveButton = document.getElementById("save-button");
+    var loadingContainer = document.getElementById("loading-container");
+    var loadingMessage = document.getElementById("loading-message");
+
+    checkTrnButton.addEventListener("click", function () {
+        var trnValue = trnInput.value.trim().toUpperCase();
+        var legalFileId = "{{ installment.agreement.legal_file.id }}";
+
+        if (!trnValue) {
+            alert("Please enter a valid TRN.");
+            return;
+        }
+
+        loadingContainer.style.display = "block";
+        loadingMessage.textContent = "Checking Database...";
+        trnResult.style.display = "none";
+        trnMessage.style.display = "none";
+        paymentFormContainer.style.display = "none";
+
+        fetch(`/check_trn_payment/${trnValue}/${legalFileId}/`)
+            .then(response => response.json())
+            .then(data => {
+                console.log("✅ API Response:", data); // Debugging output
+                loadingContainer.style.display = "none";
+
+                // **Check if TRN has already been captured**
+                if (data.error) {
+                    trnMessage.textContent = data.error;
+                    trnMessage.classList.add("alert-danger");
+                    trnMessage.style.display = "block";
+
+                    // Hide form elements when error is displayed
+                    trnResult.style.display = "none";
+                    paymentFormContainer.style.display = "none";
+                    return;
+                }
+
+                // If there is a message (out of scope or wrong company), show it and hide the form
+                if (data.message) {
+                    trnMessage.textContent = data.message;
+                    trnMessage.classList.add("alert-warning");
+                    trnMessage.style.display = "block";
+
+                    // Hide form elements if message is returned
+                    trnResult.style.display = "none";
+                    paymentFormContainer.style.display = "none";
+                    return;
+                }
+
+                // If TRN is valid, display results
+                trnMessage.style.display = "none";
+                trnResult.style.display = "block";
+                trnStatus.textContent = "Valid TRN";
+                trnAmount.textContent = Number(data.total_payment).toLocaleString();
+                amountPaidInput.value = data.total_payment;
+
+                var paymentDate = data.payment_date ? data.payment_date.split("T")[0] : "N/A";
+                trnDateOfPayment.textContent = paymentDate;
+                paymentDateInput.value = paymentDate !== "N/A" ? paymentDate : "";
+
+                trnField.value = trnValue;
+                trnField.removeAttribute("readonly");
+
+                paymentFormContainer.style.display = "block";
+            })
+            .catch(error => {
+                loadingContainer.style.display = "none";
+                alert("Error checking TRN. Please try again.");
+            });
+    });
+
+    saveButton.addEventListener("click", function () {
+        if (paymentFormContainer.style.display === "none") {
+            alert("Please enter a valid TRN and check details before saving.");
+        }
+    });
+});
+
+</script>
+
+{% endblock %}

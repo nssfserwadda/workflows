@@ -1,0 +1,159 @@
+{% extends "headerlegal.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+    body {
+        overflow-x: hidden; /* prevent horizontal scrolling */
+    }
+
+    .alert-success {
+        background-color: #dff0d8;
+        color: #3c763d;
+        border-color: #d6e9c6;
+    }
+
+    .custom-submit-btn {
+        background-color: #bfcecebe; /* Replace with your desired color code */
+        color: #090909; /* Replace with the desired text color for the button */
+    }
+</style>
+
+<body>
+    <div class="container stu mt-5" min-width: 965px;>
+        {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'error' %}
+                <div class="alert alert-danger text-center">
+                    {{ message }}
+                </div>
+            {% else %}
+                <div class="alert alert-success text-center">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        <a class="btn btn-primary mb-3" href="{% url 'legalfiles' %}">
+            <i class="fa fa-list"></i> Legal Files Added
+        </a>
+        <div class="row">
+            <div class="col-sm-12 text-left py-8">
+                <div class="alert alert-info text-center" style="font-weight: bold;">Record Legal File</div>
+                
+                <form method="POST" enctype="multipart/form-data" action="{% url 'addfile' %}" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <!-- Left Column -->
+                        <div class="col-sm-6">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>FY Submitted to Legal</strong></label>
+                                {{ lfm.fy_submitted_to_legal }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>FY Deed Signed</strong></label>
+                                {{ lfm.fy_deed_signed }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Source</strong></label>
+                                {{ lfm.source }}
+                            </div>
+
+                            
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Employer Name</strong></label>
+                                {{ lfm.employer_name }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>NSSF Number</strong></label>
+                                {{ lfm.nssf_number }}
+                            </div>
+
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Auditor</strong></label>
+                                {{ lfm.auditor }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Branch</strong></label>
+                                {{ lfm.branch }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Date Received</strong></label>
+                                {{ lfm.date_received }}
+                            </div>
+                      
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="col-sm-6">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Audited Period Start Date</strong></label>
+                                {{ lfm.audited_period_startdate }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Audited Period End Date</strong></label>
+                                {{ lfm.audited_period_enddate }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Total Arrears</strong></label>
+                                {{ lfm.total_arrears }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Special Contribution</strong></label>
+                                {{ lfm.special_contribution }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Interest</strong></label>
+                                {{ lfm.interest }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Penalties</strong></label>
+                                {{ lfm.penalties }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>10% Penalty</strong></label>
+                                {{ lfm.ten_percent_penalty }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Attachments</strong></label>
+                                <div class="attachment-fields">
+                                    <input type="file" name="attachments" multiple class="form-control-file">
+                                    {% for attachment in dfm.attachments.value %}
+                                        <a href="{{ attachment.file.url }}" download>{{ attachment.file.name }}</a><br>
+                                    {% endfor %}
+                                </div>
+                                <button type="button" class="btn btn-primary btn-sm mt-2" onclick="addAttachmentField()">Add Attachment</button>
+                                <button class="btn btn-lg custom-submit-btn" type="submit">Submit</button>
+                            </div>
+                            <div class="mb-3 form-iteration">
+                                {% for legalfile in lfm %}
+                                {% if legalfile.attachments %}
+                                <p><strong>Attachments:</strong></p>
+                                <ul>
+                                {% for attachment in legalfile.attachments %}
+                                    <li><a href="{{ attachment.file.url }}" download>{{ attachment.file.name }}</a></li>
+                                {% endfor %}
+                                </ul>
+                                {% endif %}
+                                {% endfor %}
+                                
+                                </div>
+                        </div>
+                    </div>
+<!-- Scripts -->
+
+{% endblock %}         

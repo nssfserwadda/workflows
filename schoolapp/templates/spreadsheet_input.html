@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Paste Excel Data</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
+</head>
+<body>
+    <h2>Paste Excel Data Here</h2>
+    <div id="spreadsheet" style="width:800px;height:400px;"></div>
+    <button id="saveBtn">Save Data</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+    <script>
+        const container = document.getElementById('spreadsheet');
+        
+        const hot = new Handsontable(container, {
+            data: [[]],
+            rowHeaders: true,
+            colHeaders: ['name', 'email', 'phone', 'salary'],
+            minSpareRows: 5,
+            licenseKey: 'non-commercial-and-evaluation',
+            columns: [
+                {
+                    data: 'name',
+                    type: 'text',
+                    validator: /^[A-Za-z\s]+$/,
+                    allowInvalid: false
+                },
+                {
+                    data: 'email',
+                    type: 'text',
+                    validator: function(value, callback){
+                        if (!value) return callback(false);
+                        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        callback(emailPattern.test(value));
+                    },
+                    allowInvalid: false
+                },
+                {
+                    data: 'phone',
+                    type: 'text',
+                    validator: /^[0-9\-\+\(\)\s]{7,20}$/,
+                    allowInvalid: false
+                },
+                {
+                    data: 'salary',
+                    type: 'numeric',
+                    numericFormat: { pattern: '0,0.00' },
+                    validator: function(value, callback){
+                        callback(!isNaN(value) && Number(value) >= 0);
+                    },
+                    allowInvalid: false
+                }
+            ]
+        });
+
+
+        document.getElementById('saveBtn').onclick = function(){
+            const spreadsheetData = hot.getData();
+            const cleanedData = spreadsheetData
+                .filter(row => row.some(cell => cell !== null && cell !== ''))
+                .map(row => ({
+                    name: row[0],
+                    email: row[1],
+                    phone: row[2],
+                    salary: row[3]
+                }));
+
+            fetch('/save-spreadsheet/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(cleanedData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Data saved successfully!');
+                } else if(data.status === 'partial'){
+                    alert('Some data had issues:\n' + data.errors.join('\n'));
+                } else {
+                    alert('Failed to save data.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error saving data.');
+            });
+        };
+
+
+
+        </script>
+        
+</body>
+</html>

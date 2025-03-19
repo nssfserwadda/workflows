@@ -1,0 +1,187 @@
+{% load custom_tags %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>BIU_360</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+    body {
+      font-family: Poppins, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #33b5e5; 
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      z-index: 999;
+    }
+
+    .navbar a {
+      color: #ffffff;
+      text-decoration: none;
+      margin-right: 20px;
+      font-size: 16px;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      height: calc(100vh - 40px); /* Adjust height to account for the navbar */
+      padding: 20px;
+      background-color: #f5f5f5;
+      margin-top: 40px; /* Add margin to push content below the navbar */
+    }
+
+    .box {
+      width: 150px;
+      height: 100px;
+      margin: 10px;
+      padding: 10px;
+      background-color: #ffffff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      text-align: center;
+      transition: box-shadow 0.3s;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      
+    }
+
+    .box:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .box a {
+      color: #333333;
+      text-decoration: none;
+    }
+
+    .box h3 {
+      margin-top: 5px;
+      font-size: 16px;
+      font-weight: bold;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .box p {
+      margin-top: 5px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    
+    <a class="nav-link" href="#">Welcome, {{ user.username }}</a>
+    
+    <a href="logout">Log out</a>
+    <!-- Add more links as needed -->
+
+  </div>
+  <div class="container">
+
+
+
+    {% if user.is_authenticated %}
+
+          <div class="box">
+            <a href="/engagview"><h3>Employer engagements</h3></a>
+        </div>
+
+        {% if user|user_in_group:'Officers' %}
+
+        <div class="box">
+            <a href="/vq"><h3>Employer closure</h3></a>
+        </div>
+
+        {% endif %}
+
+        {% if user|user_in_group:'Supervisors' %}
+
+        <div class="box">
+            <a href="/sview"><h3>Employer closure</h3></a>
+        </div>
+
+        {% endif %}
+
+        {% if user|user_in_group:'Line managers' %}
+
+        <div class="box">
+            <a href="/lmview"><h3>Employer closure</h3></a>
+        </div>
+        {% endif %}
+
+
+        {% if user|user_in_group:'Assessors' %}
+
+        <div class="box">
+            <a href="/asgnedview"><h3>Employer closure</h3></a>
+        </div>
+ 
+        {% endif %}
+
+        {% if user|user_in_group:'Financial Advisors' %}
+
+        <div class="box">
+            <a href="/addEvent"><h3>Finacial Lieracy Events</h3></a>
+        </div>
+ 
+        {% endif %}
+
+        
+        {% if user|user_in_group:'Auditors' %}
+
+        <div class="box">
+            <a href="/wbview"><h3>Whistleblower</h3></a>
+        </div>
+        {% endif %}
+
+        {% if user|user_in_group:'WB reviewer' %}
+        <div class="box">
+          <a href="/case_rev"><h3>Whistleblower</h3></a>
+      </div>
+      {% endif %}
+
+      {% if user|user_in_group:'WB profiler' %}
+      <div class="box">
+        <a href="/wbview"><h3>Whistleblower</h3></a>
+    </div>  
+    {% endif %}    
+      
+    {% if user|user_in_group:'Suspenseteam' %}
+    <div class="box">
+      <a href="/startpg"><h3>Suspense</h3></a>
+     
+      </a>
+    </div>
+
+        {% endif %}        
+
+        <div class="box">
+          <a href="/genview"><h3>General correspondences</h3></a>
+      </div> 
+
+        <div class="box">
+          <a href="/legalfiles"><h3>Legal files</h3></a>
+      </div> 
+    {% endif %}
+
+  </div>
+</body>
+</html>

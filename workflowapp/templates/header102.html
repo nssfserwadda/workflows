@@ -1,0 +1,244 @@
+{% load custom_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css">
+    
+    <!-- Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+    <!-- Additional CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/css/bootstrap-datepicker.min.css">
+    {% block styles %}{% endblock %}
+
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        /* Sidebar styles */
+        .sidebar {
+            background-color: #f8f9fa;
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 80px;
+            transition: width 0.3s;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar .nav-item {
+            padding: 10px 20px;
+        }
+
+        .sidebar .nav-link {
+            color: #333;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+
+        .sidebar.collapsed .nav-link span {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-link i {
+            margin: 0 auto;
+        }
+
+        /* Active Sidebar Link */
+        .sidebar .nav-link.active {
+            background-color: #007bff !important;
+            color: white !important;
+            font-weight: bold;
+            border-radius: 0px !important; /* Remove rounded corners */
+        }
+
+        /* Sidebar Toggle Button */
+        #sidebarToggle {
+            position: fixed;
+            top: 10px;
+            left: 260px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 1001;
+            transition: left 0.3s;
+        }
+
+        .sidebar.collapsed + #sidebarToggle {
+            left: 90px;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 0px;
+            transition: margin-left 0.3s;
+        }
+
+        .collapsed ~ .main-content {
+            margin-left: 80px;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .container-fluid {
+            margin-top: 80px;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            text-align: center;
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item"><a class="nav-link" href="javascript:history.back()">Back</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/land">Home</a></li>
+
+                        {% if user.is_authenticated %}
+                            <li class="nav-item"><a class="nav-link">Welcome, {{ user.username }}</a></li>                        
+                            <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+                        {% else %}
+                            <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Sidebar -->
+    <!-- <nav id="sidebar" class="sidebar">
+        <ul class="nav flex-column">
+
+            <li class="nav-item"><a class="nav-link" href="/susp_quer" onclick="setActiveLink(event)"><i class="fas fa-folder-open"></i> <span>Amounts & Dates</span></a></li>            
+            <li class="nav-item"><a class="nav-link" href="/susp_suma" onclick="setActiveLink(event)"><i class="fas fa-folder-open"></i> <span>By Employer</span></a></li>
+
+            <li class="nav-item"><a class="nav-link" href="/susp_comp" onclick="setActiveLink(event)"><i class="fas fa-folder-open"></i> <span>URA contacts</span></a></li>
+
+            <li class="nav-item"><a class="nav-link" href="/susp_all" onclick="setActiveLink(event)"><i class="fas fa-folder-open"></i> <span>By Member</span></a></li>            
+            <li class="nav-item"><a class="nav-link" href="/uratins" onclick="setActiveLink(event)"><i class="fas fa-folder-open"></i> <span>URA TINs</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="/emp_hist" onclick="setActiveLink(event)"><i class="fas fa-folder-open"></i> <span>Workfolio</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="/leads" onclick="setActiveLink(event)"><i class="fas fa-folder-open"></i> <span>Leads</span></a></li>        
+        </ul>
+    </nav> -->
+
+    <nav id="sidebar" class="sidebar">
+        <div class="position-sticky">
+            <ul class="nav flex-column">
+                {% if user.is_authenticated %}
+                    <!-- Collapsible Sidebar Items -->
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="collapse" href="#collapseEngagement" role="button"
+                            aria-expanded="false" aria-controls="collapseEngagement">
+                            More
+                        </a>
+                        <div class="collapse" id="collapseEngagement">
+                            <ul class="nav flex-column">
+                                <li><a class="nav-link" href="/engag">Record Employer Engagement</a></li>
+                                <li><a class="nav-link" href="/engagview">My Engagements</a></li>
+                                <li><a class="nav-link" href="/search">Search Engagements</a></li>
+                                <li><a class="nav-link" href="/sup_review">Engagements to review </a></li>
+                            </ul>
+                        </div>
+                    </li>
+
+                {% endif %}
+                <!-- Add more sidebar navigation links here for other cases or default links -->
+            </ul>
+        </div>
+    </nav>    
+
+    <!-- Sidebar toggle button -->
+    <i class="fas fa-bars" id="sidebarToggle"></i>
+
+    <!-- Main Content -->
+    <div class="main-content container-fluid">
+        <div class="container mt-5">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Sidebar Toggle Script -->
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+
+        sidebarToggle.addEventListener('click', function () {
+            sidebar.classList.toggle('collapsed');
+        });
+
+        // Keep the selected sidebar link active
+        document.addEventListener("DOMContentLoaded", function() {
+            let activeLink = localStorage.getItem("activeSidebarLink");
+
+            if (activeLink) {
+                let links = document.querySelectorAll(".nav-link");
+                links.forEach(link => {
+                    if (link.href === activeLink) {
+                        link.classList.add("active");
+                    } else {
+                        link.classList.remove("active");
+                    }
+                });
+            }
+        });
+
+        function setActiveLink(event) {
+            localStorage.setItem("activeSidebarLink", event.currentTarget.href);
+        }
+    </script>
+
+
+
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
