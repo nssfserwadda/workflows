@@ -1,5 +1,7 @@
 import os
 from pathlib import Path
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module='django_fsm')
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -101,10 +103,10 @@ WSGI_APPLICATION = 'workflows.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Business_db',
+        'NAME': 'business_db2',
         'USER': 'postgres',
         #'PASSWORD': 'ismi@311',
-        'PASSWORD': 'twib@311',
+        'PASSWORD': 'new_password',
         'HOST': 'localhost',
         'PORT': '5432',
     }

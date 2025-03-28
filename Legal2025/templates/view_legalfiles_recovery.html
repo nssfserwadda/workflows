@@ -3,8 +3,10 @@
 {% load static %}
 {% load custom_tags %}
 {% load humanize %}
+
 {% block styles %}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css">
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
 
@@ -29,6 +31,10 @@
     .alert {
         width: 105%;
     }
+
+    .no-export {
+        display: none !important;
+    }
 </style>
 {% endblock %}
 
@@ -44,7 +50,21 @@
 
     <div class="col-sm-12 p-3">
         <div class="alert alert-info text-center flex-grow-1">{{ headline }}</div>
-        <table id="legal-files-table" class="table table-striped table-bordered" data-toggle="table">
+
+        <!-- Export + Search -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <input type="text" id="tableSearch" class="form-control w-25" placeholder="Search Employer or NSSF" />
+            <div>
+                <button id="export-csv" class="btn btn-outline-success btn-sm ml-2">
+                    <i class="fas fa-file-csv"></i> Export CSV
+                </button>
+                <button id="export-excel" class="btn btn-outline-info btn-sm ml-2">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
+            </div>
+        </div>
+
+        <table id="legal-files-table" class="table table-striped table-bordered nowrap" style="width: 100%;">
             <thead>
                 <tr>
                     <th>NSSF Number</th>
@@ -54,7 +74,7 @@
                     <th>Legal Status</th>
                     <th>Total Arrears</th>
                     <th>Amount Paid</th>
-                    <th>File Details</th>
+                    <th class="no-export">File Details</th>
                 </tr>
             </thead>
             <tbody>
@@ -64,33 +84,17 @@
                     <td>{{ file.employer_name|truncatechars:25 }}</td>
                     <td>{{ file.date_received }}</td>
                     <td>{{ file.case_status }}</td>
-                    <td> {{ file.get_current_legal_status}}</td>
-                    <!-- <td>
-                        {% for comment in previous_comments %}
-                        {{ file.comment.legal_status }}
-                    {% endfor %}
-                </td> -->
-                <!-- <td>
-                    {% for comment in latest_comments %}
-                        {% if comment.legal_file == file %}
-                            {{ comment.legal_status }}
-                        {% endif %}
-                    {% endfor %}
-                </td>
-                 -->
+                    <td>{{ file.get_current_legal_status }}</td>
                     <td>{{ file.total_arrears|intcomma }}</td>
                     <td>{{ file.amount_paid|intcomma }}</td>
-                    
-                    
-                        <td>
-                            <a href="{% url 'details_offiles' file.id %}" class="btn btn-primary btn-sm">
-                                Details
-                            </a>
-                            <a href="{% url 'update_legalfile_manager' file.id %}" class="text-warning" title="Update">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                        </td>
-                    
+                    <td>
+                        <a href="{% url 'details_offiles' file.id %}" class="btn btn-primary btn-sm">
+                            Details
+                        </a>
+                        <a href="{% url 'update_legalfile_manager' file.id %}" class="text-warning" title="Update">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -120,7 +124,6 @@
                             {% endfor %}
                         </select>
                     </div>
-                    
                     <button type="submit" class="btn btn-success">Assign</button>
                 </form>
             </div>
@@ -130,22 +133,69 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- DataTables + Export Scripts -->
 <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
+
 <script>
-    $(document).ready(function() {
-        $('#legal-files-table').DataTable({
-            "paging": true,
-            "lengthChange": true,
-            "searching": true,
-            "ordering": true,
-            "info": true,
-            "autoWidth": false,
-            "order": [[3, 'desc']] // Sort by 'Date Created' column (index 3)
+    $(document).ready(function () {
+        const table = $('#legal-files-table').DataTable({
+            dom: 'Bfrtip',
+            paging: true,
+            searching: true,
+            ordering: true,
+            info: true,
+            autoWidth: false,
+            responsive: true,
+            buttons: [
+                {
+                    extend: 'csvHtml5',
+                    title: 'Assigned_Legal_Files',
+                    className: 'd-none',
+                    exportOptions: {
+                        columns: function (idx, data, node) {
+                            return !$(node).hasClass('no-export');
+                        }
+                    }
+                },
+                {
+                    extend: 'excelHtml5',
+                    title: 'Assigned_Legal_Files',
+                    className: 'd-none',
+                    exportOptions: {
+                        columns: function (idx, data, node) {
+                            return !$(node).hasClass('no-export');
+                        }
+                    }
+                }
+            ],
+            columnDefs: [
+                {
+                    targets: -1,
+                    className: 'no-export'
+                }
+            ],
+            order: [[2, 'desc']]  // Sort by Date Created
         });
 
-        // Populate the hidden input field in the modal with the file ID
-        $('.assign-btn').on('click', function() {
-            var fileId = $(this).data('file-id');
+        $('#tableSearch').on('keyup', function () {
+            table.search(this.value).draw();
+        });
+
+        $('#export-csv').click(function () {
+            table.button('.buttons-csv').trigger();
+        });
+
+        $('#export-excel').click(function () {
+            table.button('.buttons-excel').trigger();
+        });
+
+        // Assign Modal Handler
+        $('.assign-btn').on('click', function () {
+            const fileId = $(this).data('file-id');
             $('#fileId').val(fileId);
         });
     });

@@ -14,11 +14,12 @@ import threading
 
 class Attachment(models.Model):
     file = models.FileField(upload_to='attachments/')
-    #forclosure = models.ForeignKey('Forclosure', on_delete=models.CASCADE, related_name='attachments')
-    legal= models.ForeignKey('LegalFiles', on_delete=models.CASCADE, related_name='legal_attachments',blank=True, null=True)
-    comment = models.ForeignKey('Comment', on_delete=models.CASCADE, related_name='comment_attachments',blank=True, null=True)
-
-    #generalquery = models.ForeignKey('Generalquery', on_delete=models.CASCADE, related_name='attachments',blank=True, null=True)
+    legal = models.ForeignKey('LegalFiles', on_delete=models.CASCADE, 
+                            related_name='legal_attachments',
+                            blank=True, null=True)
+    comment = models.ForeignKey('Comment', on_delete=models.CASCADE,
+                              related_name='comment_attachments',
+                              blank=True, null=True)
 
 #Files submitted to Legal
 class LegalFiles(models.Model):
@@ -53,9 +54,24 @@ class LegalFiles(models.Model):
         ('assigned', 'assigned'),
         ('updated', 'updated'),
     ]
+
+    FY_CHOICES =[
+        ('16/17', '16/17'),
+        ('17/18', '17/18'),
+        ('18/19', '18/19'),
+        ('19/20', '19/20'),
+        ('20/21', '20/21'),
+        ('21/22', '21/22'),
+        ('22/23', '22/23'),
+        ('23/24', '23/24'),
+        ('24/25', '24/25'),
+        ('25/26', '25/26'),
+        ('26/27', '26/27'),
+        ('27/28', '27/28'),
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='legalfiles', default=1)
-    fy_submitted_to_legal = models.CharField(max_length=10, null=True, blank=True)  
-    fy_deed_signed = models.CharField(max_length=10, null=True, blank=True)  
+    fy_submitted_to_legal = models.CharField(max_length=10, null=True, blank=True, choices=FY_CHOICES)  
+    fy_deed_signed = models.CharField(max_length=10, null=True, blank=True, choices=FY_CHOICES)  
     source = models.CharField(max_length=10, choices=SOURCE_CHOICES,null=True, blank=True )
     case_status = FSMField(default='initiated',choices=STATUS_CHOICES, null=True, blank=True)
     legal_status = models.CharField(max_length=50, choices=LEGAL_STATUS_CHOICES, null=True, blank=True)
@@ -80,7 +96,7 @@ class LegalFiles(models.Model):
     courtfiling_date = models.DateField(null=True, blank=True)
     nexthearing_date = models.DateField(null=True, blank=True)
     closure_date = models.DateField(null=True, blank=True)
-    created_on = models.DateTimeField(auto_now_add=True)
+    created_on = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
         return f"{self.employer_name} - {self.legal_status}"

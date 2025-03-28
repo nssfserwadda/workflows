@@ -1,0 +1,237 @@
+{% extends "header10.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+    body {
+  overflow-x: hidden; /* prevent horizontal scrolling */
+}
+
+    .alert-success {
+    background-color: #dff0d8;
+    color: #3c763d;
+    border-color: #d6e9c6;
+    }
+    .custom-submit-btn {
+        background-color: #bfcecebe; /* Replace with your desired color code */
+        color: #090909; /* Replace with the desired text color for the button */
+    }
+</style>
+
+<body>
+    <div class="container stu mt-5" min-width: 965px;>
+        {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'error' %}
+                <div class="alert alert-danger text-center">
+                    {{ message }}
+                </div>
+            {% else %}
+                <div class="alert alert-success text-center">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        <a class="btn btn-primary mb-3" href="{% url 'deedsview' %}">
+            <i class="fa fa-list"></i> Deeds Added
+        </a>
+        <div class="row">
+            <div class="col-sm-12 text-left py-8">
+                <div class="alert alert-info text-center" style="font-weight: bold;">Record Employer Deed</div>
+                
+                <form method="POST" enctype="multipart/form-data" action="{% url 'deed' %}" novalidate>
+                    {% csrf_token %}
+                    
+                    {{ fm.id }}
+
+                    <div class="row">
+                        <!-- Left Column -->
+                        <div class="col-sm-6">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>NSSF No</strong><strong style="color: red;">*</strong></label>
+                                <input type="text" id="id_nssf_no" name="nssf_no" class="form-control" required>
+                                <div class="invalid-feedback">
+                                    Please provide a valid NSSF No.
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Employer Name</strong></label>
+                                <input type="text" id="employerNameInput" name="employer_name" class="form-control" required readonly>
+                            </div>
+
+                            <!-- <div class="mb-3">
+                                <label class="form-label"><strong>Branch</strong></label>
+                                <input type="text" name="Branch" class="form-control">
+                            </div> -->
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Branch</strong></label>
+                                
+                                {{ dfm.Branch }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Deed Source</strong></label>
+                                {{ dfm.Deed_source }}   
+
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Team Leader</strong></label>
+                                {{ dfm.team_leader }}  
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label"><strong>Legacy Status</strong></label>
+                                    <input type="checkbox" name="Legacy_status" class="form-check-input">
+                               
+                                    <label class="form-label"><strong>Signed Deed</strong></label>
+                                    <input type="checkbox" name="Signed_Deed" class="form-check-input">
+                                </div>    
+                                
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Attachments</strong></label>
+                                <div class="attachment-fields">
+                                    <input type="file" name="attachments" multiple class="form-control-file">
+                                    {% for attachment in dfm.attachments.value %}
+                                        <a href="{{ attachment.file.url }}" download>{{ attachment.file.name }}</a><br>
+                                    {% endfor %}
+                                </div>
+                                <button type="button" class="btn btn-primary btn-sm mt-2" onclick="addAttachmentField()">Add Attachment</button>
+                            </div>
+                            <!-- <div class="mb-3">
+                                <label class="form-label"><strong>Team Leader</strong></label>
+                                <input type="text" name="Team_Leader" class="form-control">
+                            </div> -->
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="col-sm-6">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>From Date</strong></label>
+                                <input type="date" name="From_Date" class="form-control">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>To Date</strong></label>
+                                <input type="date" name="To_Date" class="form-control">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>First Installment Date</strong></label>
+                                <input type="date" name="First_Installment_Date" class="form-control">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Second Installment Date</strong></label>
+                                <input type="date" name="Second_Installment_Date" class="form-control">
+                            </div>
+
+                            <button class="btn btn-lg custom-submit-btn" type="submit">Submit</button>
+
+                            
+                            
+                            <div class="mb-3 form-iteration">
+                            {% for deed in dfm %}
+                            {% if deed.attachments %}
+                            <p><strong>Attachments:</strong></p>
+                            <ul>
+                            {% for attachment in deed.attachments %}
+                                <li><a href="{{ attachment.file.url }}" download>{{ attachment.file.name }}</a></li>
+                            {% endfor %}
+                            </ul>
+                            {% endif %}
+                            {% endfor %}
+                            
+                            </div>
+                        </div>
+
+                    </div>
+
+                    
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+    <script>
+
+        //Function to add more attachments
+        function addAttachmentField() {
+            var attachmentFieldsDiv = document.querySelector('.attachment-fields');
+            var newAttachmentField = document.createElement('input');
+            newAttachmentField.type = 'file';
+            newAttachmentField.name = 'attachments';
+            newAttachmentField.className = 'form-control-file mb-2';
+            newAttachmentField.multiple = true;
+            attachmentFieldsDiv.appendChild(newAttachmentField);
+        }
+        // function addAttachmentField() {
+        //     var attachmentsDiv = document.querySelector('.attachments');
+        //     var newAttachmentField = document.createElement('input');
+        //     newAttachmentField.type = 'file';
+        //     newAttachmentField.name = 'attachments';
+        //     newAttachmentField.className = 'form-control-file mb-2';
+        //     newAttachmentField.accept = '.pdf,.doc,.docx,.txt';
+        //     attachmentsDiv.appendChild(newAttachmentField);
+        // }
+        // AJAX request for fetching employer name based on NSSF No.
+        document.getElementById('id_nssf_no').addEventListener('blur', function() {
+            var nssfNo = this.value;
+            var employerNameInput = document.getElementById('employerNameInput');
+            if (nssfNo !== '') {
+                var url = '/get_employer_name/?nssf_no=' + nssfNo;
+                fetch(url)
+                    .then(response => response.text())
+                    .then(data => {
+                        employerNameInput.value = data;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            } else {
+                employerNameInput.value = '';
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+    // Get the Branch dropdown and Team Leader input elements
+    var branchSelect = document.getElementById('branch_id');
+    var teamLeaderInput = document.getElementById('teamLeaderInput');
+
+    // Ensure elements are present before adding the event listener
+    if (branchSelect && teamLeaderInput) {
+        // Add change event listener to the Branch dropdown
+        branchSelect.addEventListener('change', function() {
+            var selectedBranchId = branchSelect.value;
+
+            // Check if a branch is selected
+            if (selectedBranchId !== '') {
+                // Construct the URL for the AJAX request
+                var url = '{% url "get_team_leader" %}?branch_id=' + selectedBranchId;
+
+                // Make the AJAX request to fetch the Team Leader
+                fetch(url)
+                    .then(response => response.json())  // Parse the response as JSON
+                    .then(data => {
+                        // Set the fetched Team Leader name to the input field
+                        teamLeaderInput.value = data.team_leader_name;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching team leader:', error);
+                    });
+            } else {
+                // Clear the Team Leader input if no branch is selected
+                teamLeaderInput.value = '';
+            }
+        });
+    } else {
+        console.error('Branch select or Team Leader input not found.');
+    }
+});
+    </script>
+</body>
+
+{% endblock %}

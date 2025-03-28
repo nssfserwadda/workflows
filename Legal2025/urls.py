@@ -33,6 +33,11 @@ path("check_trn_payment/<str:trn>/<int:legal_file_id>/", views.check_trn_payment
 
 
 path("calendar/", views.calendar_view, name="hearing_calendar"),
+path('analytics/', views.analytics_dashboard, name='analytics'),
+
+#URLS for export
+# path('export/csv/', views.export_legalfiles_csv, name='export_legalfiles_csv'),
+# path('export/excel/', views.export_legalfiles_excel, name='export_legalfiles_excel'),
 
 
 ]

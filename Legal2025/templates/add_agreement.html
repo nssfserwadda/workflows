@@ -25,6 +25,11 @@
     .hidden {
         display: none;
     }
+    
+    /* Handsontable styling */
+    .handsontable .htNumeric {
+        text-align: right;
+    }
 </style>
 {% endblock %}
 
@@ -95,39 +100,108 @@
 
     <!-- Handsontable JS -->
     <script src="https://cdn.jsdelivr.net/npm/handsontable@12.1.0/dist/handsontable.full.min.js"></script>
+    <!-- Numeric.js for number formatting -->
+    <script src="https://cdn.jsdelivr.net/npm/numbro@2.3.6/dist/numbro.min.js"></script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             var container = document.getElementById("installment-grid");
             var installmentDataField = document.getElementById("installment-data");
 
+            // Custom numeric renderer for formatted numbers
+            function numericRenderer(instance, td, row, col, prop, value, cellProperties) {
+                if (value === null || value === undefined || value === '') {
+                    td.textContent = '';
+                    return td;
+                }
+                
+                // Convert to number if it's a string with commas
+                var numValue = typeof value === 'string' ? 
+                    parseFloat(value.replace(/,/g, '')) : 
+                    value;
+                
+                // Format with commas and 2 decimal places
+                td.textContent = numbro(numValue).format('0,0.00');
+                td.style.textAlign = 'right';
+                return td;
+            }
+
+            // Custom numeric editor for formatted numbers
+            function numericEditor(instance, td, row, col, prop, value, cellProperties) {
+                var input = document.createElement('input');
+                input.className = 'handsontableInput';
+                input.style.textAlign = 'right';
+                
+                // Remove formatting when editing
+                input.value = typeof value === 'string' ? 
+                    value.replace(/,/g, '') : 
+                    (value || '');
+                
+                // Save the raw value when done editing
+                input.addEventListener('blur', function() {
+                    var rawValue = this.value.replace(/,/g, '');
+                    instance.setDataAtCell(row, col, rawValue);
+                });
+                
+                td.innerHTML = '';
+                td.appendChild(input);
+                input.focus();
+                return input;
+            }
+
             // Initialize Handsontable
             var hot = new Handsontable(container, {
                 data: [], // Empty initially
                 colHeaders: ["Date of Payment", "Amount", "Description"],
                 columns: [
-                    { type: "date", allowInvalid: false },
-                    { type: "numeric", allowInvalid: false },
-                    { type: "text", allowInvalid: false }
+                    { 
+                        // type: "date", 
+                        type: "text", 
+                        placeholder: "e.g. 26/3/2025, 2025-03-26",
+                        // dateFormat: 'DD-MM-YYYY',
+                        correctFormat: true,
+                        defaultDate: new Date().toISOString().slice(0, 10)
+                    },
+                    { 
+                        type: "numeric",
+                        renderer: numericRenderer,
+                        editor: numericEditor,
+                        numericFormat: {
+                            pattern: '0,0.00',
+                            culture: 'en-US'
+                        }
+                    },
+                    { 
+                        type: "text" 
+                    }
                 ],
                 minRows: 5,
                 rowHeaders: true,
                 colWidths: [150, 150, 300],
-                contextMenu: true,  // Enable right-click options
-                stretchH: "all"
+                contextMenu: true,
+                stretchH: "all",
+                licenseKey: 'non-commercial-and-evaluation' // Free license
             });
+
+            // Function to clean and format data before submission
+            function cleanAmount(amount) {
+                if (typeof amount === 'string') {
+                    return amount.replace(/,/g, '');
+                }
+                return amount;
+            }
 
             // Function to Update Hidden Formset Inputs
             function updateFormset() {
                 var data = hot.getData();
                 var cleanedData = [];
 
-                // Filter out empty rows
+                // Filter out empty rows and clean amounts
                 data.forEach((row, index) => {
                     if (row[0] && row[1]) { // Date and Amount must be present
                         cleanedData.push({
                             "date_of_payment": row[0],
-                            "amount": row[1],
+                            "amount": cleanAmount(row[1]),
                             "description": row[2] || ""
                         });
                     }
@@ -143,13 +217,22 @@
                 updateFormset();
             });
 
-            // Debugger on form submission to check data before sending
-            document.querySelector("form").addEventListener("submit", function () {
+            // Validate before form submission
+            document.querySelector("form").addEventListener("submit", function (e) {
                 updateFormset();  // Ensure latest data is saved
-                console.log("Submitting form with Installments:", installmentDataField.value);
+                
+                // Additional validation if needed
+                var data = JSON.parse(installmentDataField.value);
+                if (data.length === 0) {
+                    alert("Please add at least one installment");
+                    e.preventDefault();
+                    return false;
+                }
+                
+                console.log("Submitting form with Installments:", data);
+                return true;
             });
         });
     </script>
-
 </body>
 {% endblock %}

@@ -336,6 +336,32 @@ def first_reviewed_entries(request):
     headline = "Employer Closure Requests Reviewed By Supervisors" 
     return render(request, 'view_quests.html', context={'closedata': closedata, 'headline':headline})
 
+
+@login_required
+def bdu_review(request):
+
+    closedata = Forclosure.objects.filter(state='first_reviewed').order_by('-created_at')
+
+    #return render(request, 'first_reviewed_entries.html', {'entries': entries})
+    headline = "Employer Closure Requests Reviewed By Supervisors" 
+    return render(request, 'view_quests.html', context={'closedata': closedata, 'headline':headline})   
+
+
+
+@login_required
+def approved_entries(request):
+    # Check if the user belongs to the 'Line manager' group
+    line_manager_group = Group.objects.get(name='Line managers')
+    if not line_manager_group in request.user.groups.all():
+        return HttpResponse('Unauthorized', status=401)
+
+    closedata = Forclosure.objects.filter(state='approved').order_by('-created_at')
+
+    #return render(request, 'first_reviewed_entries.html', {'entries': entries})
+    headline = "Approved Employer Closure Requests" 
+    return render(request, 'view_quests.html', context={'closedata': closedata, 'headline':headline})
+
+
 @login_required
 def assign_summaries(request):
     # Check if the user belongs to the 'Line manager' group

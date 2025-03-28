@@ -21,16 +21,178 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 
+from django.db.models import Sum, Count
+from django.db.models.functions import TruncMonth
+from .models import LegalFiles
+from django.contrib.auth.models import User
+from django.core.serializers import serialize
+import json
+from decimal import Decimal, InvalidOperation
+import json
+from dateutil import parser
+from django.contrib import messages
 
+
+from datetime import datetime
+from dateutil import parser
+from decimal import Decimal, InvalidOperation
+import json
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Sum, Q
+from django.db.models.functions import TruncMonth
+from .models import LegalFiles
+import json
+from datetime import datetime
+
+@login_required
+def analytics_dashboard(request):
+    # Get filter parameters from request
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    status_filter = request.GET.get('status')
+    advocate_filter = request.GET.get('advocate')
+    
+    # Base queryset
+    cases = LegalFiles.objects.all()
+    
+    # Apply filters
+    if date_from:
+        try:
+            date_from = datetime.strptime(date_from, '%Y-%m-%d').date()
+            cases = cases.filter(created_on__gte=date_from)
+        except ValueError:
+            pass
+            
+    if date_to:
+        try:
+            date_to = datetime.strptime(date_to, '%Y-%m-%d').date()
+            cases = cases.filter(created_on__lte=date_to)
+        except ValueError:
+            pass
+            
+    if status_filter:
+        cases = cases.filter(legal_status=status_filter)
+        
+    # if advocate_filter:
+    #     cases = cases.filter(advocate__username=advocate_filter)
+    if advocate_filter:
+        # Handle both ID and full name cases
+        if advocate_filter.isdigit():
+            # If filter is an ID
+            cases = cases.filter(advocate__id=advocate_filter)
+        else:
+            # If filter is a full name
+            first_name, last_name = advocate_filter.split(' ', 1) if ' ' in advocate_filter else (advocate_filter, '')
+            cases = cases.filter(
+                Q(advocate__first_name__icontains=first_name) &
+                Q(advocate__last_name__icontains=last_name)
+            )
+    # Get distinct values for filter dropdowns
+    status_choices = LegalFiles.objects.values_list('legal_status', flat=True).distinct()
+    # advocate_choices = LegalFiles.objects.exclude(advocate__isnull=True).values_list(
+    #     'advocate__username', flat=True).distinct()
+    # Modified to get first_name and last_name
+    advocate_choices = LegalFiles.objects.exclude(advocate__isnull=True).select_related('advocate').values_list(
+        'advocate__id',
+        'advocate__first_name',
+        'advocate__last_name'
+    ).distinct()
+    
+    # Format as list of tuples (id, full_name)
+    advocate_choices = [
+        (id, f"{first_name} {last_name}".strip())
+        for id, first_name, last_name in advocate_choices
+    ]
+    # Case Status Data
+    case_status_data = list(
+        cases.values('legal_status')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    
+    # # Advocate Data
+    # advocate_data = list(
+    #     cases.values('advocate__username')
+    #     .annotate(count=Count('id'))
+    #     .order_by('-count')
+    # )
+     # Advocate Data - Modified to include full name
+    advocate_data = list(
+        cases.select_related('advocate')
+        .values('advocate__id', 'advocate__username', 'advocate__first_name', 'advocate__last_name')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    
+    # Format the data for the chart
+    chart_advocate_data = [
+        {
+            'advocate__id': item['advocate__id'],
+            'advocate__username': item['advocate__username'],
+            'full_name': f"{item['advocate__first_name']} {item['advocate__last_name']}".strip(),
+            'count': item['count']
+        }
+        for item in advocate_data
+    ]
+    
+    
+       
+    # monthly_cases_raw = LegalFiles.objects.annotate(month=TruncMonth('created_on')) \
+    # .values('month') \
+    # .annotate(count=Count('id')) \
+    # .order_by('month')
+    
+    monthly_cases_raw = LegalFiles.objects.exclude(created_on__isnull=True) \
+    .annotate(month=TruncMonth('created_on')) \
+    .values('month') \
+    .annotate(count=Count('id')) \
+    .order_by('month')
+    
+# ✅ Convert datetime to string so Django can safely pass it to JS
+    monthly_cases = [
+        {
+            'month': entry['month'].strftime('%Y-%m-%d'),  # or '%b %Y' for "Jan 2025"
+            'count': entry['count']
+        }
+        for entry in monthly_cases_raw]
+    # Monthly Cases
+ 
+
+    # Financial Data
+    financials = cases.aggregate(
+        total_arrears=Sum('total_arrears') or 0,
+        total_paid=Sum('amount_paid') or 0,
+    )
+
+    context = {
+        'case_status_data': json.dumps(case_status_data),
+        'advocate_data': json.dumps(chart_advocate_data),
+        'monthly_cases': json.dumps(monthly_cases, default=str),
+        'financials': financials,
+        'status_choices': status_choices,
+        'advocate_choices': advocate_choices,
+        'current_filters': {
+            'date_from': date_from,
+            'date_to': date_to,
+            'status': status_filter,
+            'advocate': advocate_filter,
+        }
+    }
+    
+    return render(request, 'analytics_dashboard.html', context)
 
 @login_required
 def view_legalfiles(request):
-    # Subquery to fetch the latest LegalFilesLog status for each LegalFile using created_on
+    # Check if advocate clicked "View All"
+    show_all = request.GET.get('view') == 'all'
+
+    # Latest status/comment subquery
     latest_log = LegalFilesLog.objects.filter(
         legalfile=OuterRef('pk')
     ).order_by('-created_at')
 
-    # Base queryset for all legal files
     legaldata = LegalFiles.objects.all().annotate(
         latest_legal_status=Coalesce(
             Subquery(latest_log.values('legal_status')[:1]), None
@@ -40,27 +202,23 @@ def view_legalfiles(request):
         )
     ).order_by('-created_on')
 
+    # Default headline
     headline = 'All Files in Legal'
 
-    # Latest comments per legal file
+    # Restrict to advocate’s files unless "view=all"
+    if request.user.groups.filter(name='Advocates').exists() and not show_all:
+        legaldata = legaldata.filter(
+            Q(advocate=request.user) | Q(user=request.user)
+        )
+        headline = 'Legal Files Assigned to You'
+
     latest_comments = (
         Comment.objects.filter(legal_file__in=legaldata)
-        .order_by('legal_file', '-created_on')  # Sort by legal_file, then latest created_on
-        .distinct('legal_file')  # Selects only the latest comment per file
+        .order_by('legal_file', '-created_on')
+        .distinct('legal_file')
     )
-
     previous_comments = Comment.objects.filter(legal_file__in=legaldata).order_by('-created_on')
 
-    # Filter based on user's group if required
-    if request.user.groups.filter(name='Advocates').exists():
-        # Fetch cases assigned to or created by the logged-in user
-        legaldata = legaldata.filter(
-            Q(advocate=request.user) | Q(user=request.user)  # Include both conditions
-        )
-       
-        headline = 'Your Legal Files (Assigned & Created)'
-
-    # Get all users in the "Advocates" group
     advocates_group = Group.objects.get(name="Advocates")
     advocates = User.objects.filter(groups=advocates_group)
 
@@ -69,21 +227,23 @@ def view_legalfiles(request):
         'headline': headline,
         'users': advocates,
         'latest_comments': latest_comments,
-        'url_prefix': 'closelegalfile',  # Example prefix for this view
-        'button_action': 'Update',  # Example action for the view
+        'show_all': show_all,
+        'url_prefix': 'closelegalfile',
+        'button_action': 'Update',
     }
 
-    # Determine the template to render based on user's group
+    # Render different templates
     if request.user.groups.filter(name='Advocates').exists():
         return render(request, 'view_legalfiles_Advocates.html', context)
     elif request.user.groups.filter(name='Debt Recovery Manager').exists():
         return render(request, 'view_legalfiles_recovery.html', context)
     elif request.user.groups.filter(name='Legal Managers').exists():
-        return render(request, 'view_legalfiles_Managers.html', context)  # Updated for managers
+        return render(request, 'view_legalfiles_Managers.html', context)
     elif request.user.groups.filter(name='commercial').exists():
-        return render(request, 'view_legalfiles_auditor.html', context) 
+        return render(request, 'view_legalfiles_auditor.html', context)
     else:
         return HttpResponse('Unauthorized', status=401)
+
 
 # #Add Legal File
 @login_required
@@ -403,52 +563,148 @@ def agreement_list(request):
     return render(request, 'agreement_list.html', {'agreements': agreements})
 
 """Create a new agreement under a legal file"""
+import re
 
+def clean_amount(value):
+    """Remove commas and parse to float safely."""
+    if isinstance(value, str):
+        # Remove anything that's not a digit or decimal
+        value = re.sub(r'[^\d.]', '', value)
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return 0
+# def add_agreement(request, legal_file_id):
+#     legal_file = get_object_or_404(LegalFiles, id=legal_file_id)
+#     agreement = None  
+
+#     if request.method == 'POST':
+#         form = ReconciliationAgreementForm(request.POST, legal_file=legal_file)
+
+#         # Get Handsontable JSON data
+#         installment_data = request.POST.get("installment_data", "[]")  
+#         installments = json.loads(installment_data)  
+
+#         if form.is_valid():
+#             agreement = form.save(commit=False)
+#             agreement.legal_file = legal_file
+#             agreement.save()
+
+#             valid_installments = []
+#             print(f"✅ Installment Data Received: {installments}")
+
+#             for i, installment in enumerate(installments):
+#                 try:
+#                     if installment["date_of_payment"] and installment["amount"]:
+#                         # Clean the amount by removing commas and converting to Decimal
+#                         amount_str = str(installment["amount"]).replace(',', '')
+#                         try:
+#                             amount = Decimal(amount_str)
+#                         except (InvalidOperation, TypeError):
+#                             amount = Decimal('0')
+#                             messages.warning(request, f"Invalid amount format in installment {i+1}, using 0 instead")
+
+#                         date_of_payment = parser.parse(installment["date_of_payment"]).strftime('%Y-%m-%d')
+
+#                         valid_installments.append(Installment(
+#                             agreement=agreement,
+#                             date_of_payment=date_of_payment,
+#                             amount=amount,
+#                             description=installment.get("description", "")
+#                         ))
+#                 except Exception as e:
+#                     print(f"⚠ Error processing installment #{i}: {str(e)}")
+#                     messages.warning(request, f"Error processing installment {i+1}: {str(e)}")
+
+#             if valid_installments:
+#                 Installment.objects.bulk_create(valid_installments)
+#                 print(f"✅ Successfully saved {len(valid_installments)} installments.")
+#                 messages.success(request, "Reconciliation Agreement and Installments saved successfully.")
+#             else:
+#                 messages.warning(request, "No valid installments were provided.")
+
+#             return redirect('agreement_list')
+
+#         else:
+#             print("❌ Agreement Form Errors:", form.errors.as_json())
+#             messages.error(request, "There was an error submitting the form.")
+
+#     else:
+#         form = ReconciliationAgreementForm(legal_file=legal_file)
+
+#     return render(request, 'add_agreement.html', {
+#         'form': form,
+#         'legal_file': legal_file
+#     })
 
 
 def add_agreement(request, legal_file_id):
     legal_file = get_object_or_404(LegalFiles, id=legal_file_id)
+
+    if ReconciliationAgreement.objects.filter(legal_file=legal_file).exists():
+        messages.warning(request, "An agreement has already been added for this legal file.")
+        return redirect('agreement_list')
+
     agreement = None  
 
     if request.method == 'POST':
-        form = ReconciliationAgreementForm(request.POST, legal_file=legal_file)  # ✅ Bind form data
-
-        # ✅ Get Handsontable JSON data
+        form = ReconciliationAgreementForm(request.POST, legal_file=legal_file)
         installment_data = request.POST.get("installment_data", "[]")  
         installments = json.loads(installment_data)  
 
         if form.is_valid():
             agreement = form.save(commit=False)
-            agreement.legal_file = legal_file  # ✅ Attach to legal file
-            agreement.save()  # ✅ Save agreement first
+            agreement.legal_file = legal_file
+            agreement.save()
 
-            valid_installments = []  # ✅ Store valid installment objects
-            print(f"✅ Installment Data Received: {installments}")  # Debugging
-
+            valid_installments = []
             for i, installment in enumerate(installments):
                 try:
-                    if installment["date_of_payment"] and installment["amount"]:  # ✅ Ensure required fields exist
-                        date_of_payment = parser.parse(installment["date_of_payment"]).strftime('%Y-%m-%d')  # ✅ Convert to YYYY-MM-DD
+                    if installment["date_of_payment"] and installment["amount"]:
+                        # Clean amount
+                        amount_str = str(installment["amount"]).replace(',', '')
+                        try:
+                            amount = Decimal(amount_str)
+                        except (InvalidOperation, TypeError):
+                            amount = Decimal('0')
+                            messages.warning(request, f"Invalid amount format in installment {i+1}, using 0 instead")
+
+                        # Improved date parsing
+                        date_str = str(installment["date_of_payment"])
+                        try:
+                            # Try parsing as Excel serial date first (if pasted as number)
+                            if date_str.replace('.', '').isdigit():
+                                date_of_payment = datetime.fromordinal(
+                                    datetime(1900, 1, 1).toordinal() + int(float(date_str)) - 2)
+                            else:
+                                # Try multiple date formats
+                                for fmt in ('%d/%m/%Y', '%m/%d/%Y', '%Y-%m-%d', '%d-%m-%Y', '%m-%d-%Y'):
+                                    try:
+                                        date_of_payment = datetime.strptime(date_str, fmt).date()
+                                        break
+                                    except ValueError:
+                                        continue
+                                else:
+                                    # Fallback to dateutil parser
+                                    date_of_payment = parser.parse(date_str).date()
+                        except Exception as e:
+                            messages.warning(request, f"Invalid date format in installment {i+1}: {date_str}")
+                            continue
 
                         valid_installments.append(Installment(
                             agreement=agreement,
                             date_of_payment=date_of_payment,
-                            amount=installment["amount"],
+                            amount=amount,
                             description=installment.get("description", "")
                         ))
                 except Exception as e:
-                    print(f"⚠ Invalid Date Format in Installment #{i}: {installment['date_of_payment']} - {str(e)}")  # Debugging
+                    print(f"Error processing installment #{i}: {str(e)}")
+                    messages.warning(request, f"Error processing installment {i+1}: {str(e)}")
 
             if valid_installments:
-                Installment.objects.bulk_create(valid_installments)  # ✅ Bulk insert for efficiency
-                print(f"✅ Successfully saved {len(valid_installments)} installments.")
-
-            messages.success(request, "Reconciliation Agreement and Installments saved successfully.")
+                Installment.objects.bulk_create(valid_installments)
+                messages.success(request, "Agreement and installments saved successfully!")
             return redirect('agreement_list')
-
-        else:
-            print("❌ Agreement Form Errors:", form.errors.as_json())  # Debugging
-            messages.error(request, "There was an error submitting the form.")
 
     else:
         form = ReconciliationAgreementForm(legal_file=legal_file)
@@ -457,6 +713,8 @@ def add_agreement(request, legal_file_id):
         'form': form,
         'legal_file': legal_file
     })
+
+
 
 
 def add_installment(request, agreement_id):

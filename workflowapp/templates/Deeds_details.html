@@ -1,0 +1,172 @@
+{% extends "header10.html" %}
+{% load static %}
+{% block content %}
+<!-- Container-fluid starts-->
+ <style>
+  .content-wrapper {
+    padding-top: 10px; /* adjust the value to match the height of your sticky header */
+}
+ </style>
+ 
+<div class="container-fluid content-wrapper">
+
+    <div class="page-header">
+      <div class="d-flex mb-4 mt-3">
+        <a class="btn btn-primary mb-3" href="{% url 'deedsview' %}">
+          <i class="fa fa-list"></i> Deeds Added
+      </a>
+       
+      </div>
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="page-header-left">
+                    <h3>Deed Details
+                        
+                    </h3>
+                  
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <ol class="breadcrumb float-right">
+                    <li class="breadcrumb-item">Deed</li>
+                    <li class="breadcrumb-item active">Deed Details</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Container-fluid Ends-->
+
+<!-- Container-fluid starts-->
+
+<div class="container-fluid">
+ 
+  <div class="card">
+      <div class="row product-page-main card-body">
+          <div class="col-md-3">
+        
+              <!-- <div class="col-auto">
+                  <div class="avatar-wrapper" data-tippy-placement="bottom" title="Profile image">
+                    {% if submitted_deeds.user.profile.profile_pic %}
+                      <img alt="" class="profile-pic" src="{{submitted_deeds.user.profile.profile_pic.url}}"/>
+                     {% endif %}
+                  </div>
+              </div> -->
+             
+          </div>
+          <button>All deeds</button>
+          <h3>DEED DETAILS</h3>
+          <div class="container" style="display: flex;">
+            <!-- Left Side -->
+            <div style="flex: 1; padding-right: 20px;">
+              <p><strong>Employer Number:</strong> {{ deed.nssf_no }}</p>
+              <p><strong>Employer Name:</strong> {{ deed.employer_name }}</p>
+              <p><strong>Scope Start Date:</strong> {{ deed.From_Date }}</p>
+              <p><strong>Scope End Date:</strong> {{ deed.To_Date }}</p>
+              <p><strong>Date of First Installment:</strong> {{ deed.First_Installment_Date }}</p>
+              <p><strong>Date of Second Installment:</strong> {{ deed.Second_Installment_Date }}</p>
+              <p><strong>Branch:</strong> {{ deed.Branch }}</p>
+              {% if attachments %}
+              <p><strong>Attachments:</strong></p>
+              <ul>
+              {% for attachment in attachments %}
+                  <li><a href="{{ attachment.file.url }}" download>{{ attachment.file.name }}</a></li>
+              {% endfor %}
+              </ul>
+          {% endif %}
+            </div>
+            
+            <!-- Right Side -->
+            <div style="flex: 1; padding-left: 20px;">
+              <p><strong>Team Leader:</strong> {{ deed.team_leader }}</p>
+              <p><strong>Recorded by:</strong> {{ deed.user.username }}</p>
+              <p><strong>Deed Source:</strong> {{ deed.Deed_source }}</p>
+              <p><strong>Legacy Status:</strong> {{ deed.Legacy_status|yesno:"Yes,No" }}</p>
+              <p><strong>Signed Deed:</strong> {{ deed.Signed_Deed|yesno:"Yes,No" }}</p>
+              <p><strong>Created Date:</strong> {{ deed.date_created }}</p>
+              <p><strong>Updated Date:</strong> {{ deed.date_updated }}</p>
+              <p><strong>Status:</strong> {{ deed.state }}</p>
+             
+             
+
+              
+            </div>
+          </div>
+      </div>
+  </div>
+</div>
+<h3>Review History</h3>
+<table class="table">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>User</th>
+      <th>Comment</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for log in logs %}
+    <tr>
+      <td>{{ log.created_at }}</td>
+      <td>{{ log.user }}</td>
+      <td>{{ log.remark }}</td>
+      <td>{{ log.action }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+
+{% if deed.state == 'initiated' %}
+  <form method="POST">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label for="action">Action:</label>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="action" id="cancelAction" value="cancel">
+        <label class="form-check-label" for="cancelAction">
+          Cancel Deed record
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="action" id="forwardAction" value="forward">
+        <label class="form-check-label" for="forwardAction">
+          Forward Deed for review
+        </label>
+      </div>
+    </div>
+    <div id="reviewerField" style="display: none;">
+      <div class="form-group">
+        <label for="reviewer">Reviewer:</label>
+        <select class="form-control" name="reviewer" id="reviewer">
+          {% for user in supervisors %}
+            <option value="{{ user.id }}">{{ user.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary" type="submit">Submit</button>
+  </form>
+{% endif %}
+{% block javascript %}
+<script>
+  const cancelAction = document.getElementById('cancelAction');
+  const forwardAction = document.getElementById('forwardAction');
+  const reviewerField = document.getElementById('reviewerField');
+
+  cancelAction.addEventListener('change', function() {
+    reviewerField.style.display = 'none';
+  });
+
+  forwardAction.addEventListener('change', function() {
+    reviewerField.style.display = 'block';
+  });
+</script>
+<!-- Container-fluid Ends-->
+
+{% endblock %}
+
+{% endblock %}

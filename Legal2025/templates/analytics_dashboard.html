@@ -1,0 +1,425 @@
+{% extends 'headerlegal.html' %}
+{% load humanize %}
+{% load math_filters %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="dashboard-header mb-4">
+        <h2 class="text-center text-primary mb-3">📊 Legal Case Analytics Dashboard</h2>
+        
+        <!-- Filter Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filters</h5>
+            </div>
+            <div class="card-body">
+                <form id="analyticsFilterForm" method="get">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label for="date_from" class="form-label small text-muted">From Date</label>
+                            <input type="date" class="form-control form-control-sm" id="date_from" name="date_from" 
+                                   value="{{ current_filters.date_from|default:'' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_to" class="form-label small text-muted">To Date</label>
+                            <input type="date" class="form-control form-control-sm" id="date_to" name="date_to" 
+                                   value="{{ current_filters.date_to|default:'' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="status" class="form-label small text-muted">Case Status</label>
+                            <select class="form-select form-select-sm" id="status" name="status">
+                                <option value="">All Statuses</option>
+                                {% for status in status_choices %}
+                                    <option value="{{ status }}" 
+                                        {% if current_filters.status == status %}selected{% endif %}>
+                                        {{ status }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="advocate" class="form-label small text-muted">Advocate</label>
+                            <select class="form-select form-select-sm" id="advocate" name="advocate">
+                                <option value="">All Advocates</option>
+                                {% for advocate_id, full_name in advocate_choices %}
+                                    <option value="{{ advocate_id }}"
+                                        {% if current_filters.advocate == advocate_id|stringformat:"s" %}selected{% endif %}>
+                                        {{ full_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12 text-end">
+                            <button type="button" id="resetFilters" class="btn btn-outline-secondary btn-sm me-2">
+                                <i class="fas fa-undo me-1"></i> Reset
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="fas fa-check me-1"></i> Apply Filters
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% if not case_status_data and not advocate_data and not monthly_cases %}
+        <div class="alert alert-warning text-center mt-4">
+            <i class="fas fa-exclamation-circle me-2"></i>No data available to generate analytics with current filters.
+        </div>
+    {% else %}
+        <!-- Charts Section -->
+        <div class="dashboard-content">
+            <!-- Row 1: Charts -->
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0"><i class="fas fa-chart-pie me-2"></i>Cases by Status</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="position: relative; height:300px;">
+                                <canvas id="caseStatusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0"><i class="fas fa-chart-bar me-2"></i>Cases per Advocate</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="position: relative; height:300px;">
+                                <canvas id="advocateChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2: Financials and Monthly Trend -->
+            <div class="row g-4 mt-3">
+                <div class="col-lg-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0"><i class="fas fa-money-bill-wave me-2"></i>Financial Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="financial-summary">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="text-muted">Total Arrears:</span>
+                                    <strong class="text-danger">UGX {{ financials.total_arrears|default:0|intcomma }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="text-muted">Recovered:</span>
+                                    <strong class="text-success">UGX {{ financials.total_paid|default:0|intcomma }}</strong>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">Recovery Rate:</span>
+                                    <div class="recovery-rate">
+                                        <span class="badge bg-{% if financials.total_arrears and financials.total_paid|div:financials.total_arrears|multiply:100 >= 50 %}success{% else %}warning{% endif %} p-2">
+                                            {% if financials.total_arrears %}
+                                                {{ financials.total_paid|div:financials.total_arrears|multiply:100|floatformat:2 }}%
+                                            {% else %}
+                                                0%
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0"><i class="fas fa-chart-line me-2"></i>Monthly Case Trend</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="position: relative; height:300px;">
+                                <canvas id="monthlyCasesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Helper function to handle empty data
+    function renderChartOrMessage(canvasId, data, chartType, options = {}) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        
+        if (!data || data.length === 0) {
+            canvas.outerHTML = `<div class="text-center text-muted py-4">
+                <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
+                <p>No data available for this chart</p>
+            </div>`;
+            return;
+        }
+
+        try {
+            new Chart(canvas, {
+                type: chartType,
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 12 },
+                            padding: 12,
+                            cornerRadius: 4
+                        }
+                    },
+                    ...options
+                }
+            });
+        } catch (e) {
+            console.error(`Error rendering ${canvasId}:`, e);
+            canvas.outerHTML = `<div class="text-center text-danger py-4">
+                <i class="fas fa-times-circle fa-2x mb-2"></i>
+                <p>Error rendering chart</p>
+            </div>`;
+        }
+    }
+
+    // CASE STATUS CHART
+    try {
+        const statusData = JSON.parse('{{ case_status_data|escapejs }}');
+        if (statusData && statusData.length > 0) {
+            const statusLabels = statusData.map(obj => obj.legal_status || "Unspecified");
+            const statusCounts = statusData.map(obj => obj.count);
+
+            renderChartOrMessage('caseStatusChart', {
+                labels: statusLabels,
+                datasets: [{
+                    label: 'Case Statuses',
+                    data: statusCounts,
+                    backgroundColor: [
+                        '#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', 
+                        '#9966FF', '#FF9F40', '#8AC24A', '#607D8B'
+                    ],
+                    borderWidth: 1
+                }]
+            }, 'doughnut', {
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('caseStatusChart').outerHTML = 
+                `<div class="text-center text-muted py-4">
+                    <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
+                    <p>No case status data available</p>
+                </div>`;
+        }
+    } catch (e) {
+        console.error("Error parsing case status data:", e);
+    }
+
+    // ADVOCATE CHART
+    try {
+        const advocateData = JSON.parse('{{ advocate_data|escapejs }}');
+        if (advocateData && advocateData.length > 0) {
+            const advLabels = advocateData.map(obj => obj.full_name || "Unassigned");
+            const advCounts = advocateData.map(obj => obj.count);
+
+            renderChartOrMessage('advocateChart', {
+                labels: advLabels,
+                datasets: [{
+                    label: 'Cases per Advocate',
+                    data: advCounts,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            }, 'bar', {
+                plugins: { 
+                    legend: { 
+                        display: false 
+                    } 
+                },
+                scales: { 
+                    y: { 
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            autoSkip: false,
+                            maxRotation: 45,
+                            minRotation: 45,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('advocateChart').outerHTML = 
+                `<div class="text-center text-muted py-4">
+                    <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
+                    <p>No advocate assignment data available</p>
+                </div>`;
+        }
+    } catch (e) {
+        console.error("Error parsing advocate data:", e);
+    }
+
+    // MONTHLY CASE TREND
+    try {
+        const monthlyData = JSON.parse('{{ monthly_cases|escapejs }}');
+        if (monthlyData && monthlyData.length > 0) {
+            const months = monthlyData.map(obj => 
+                new Date(obj.month).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
+            );
+            const caseCounts = monthlyData.map(obj => obj.count);
+
+            renderChartOrMessage('monthlyCasesChart', {
+                labels: months,
+                datasets: [{
+                    label: 'Cases Created',
+                    data: caseCounts,
+                    borderColor: 'rgba(255, 99, 132, 0.8)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    fill: true,
+                    tension: 0.3,
+                    pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            }, 'line', {
+                plugins: { 
+                    legend: { 
+                        display: false 
+                    } 
+                },
+                scales: { 
+                    y: { 
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    } 
+                }
+            });
+        } else {
+            document.getElementById('monthlyCasesChart').outerHTML = 
+                `<div class="text-center text-muted py-4">
+                    <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
+                    <p>No case trend data available</p>
+                </div>`;
+        }
+    } catch (e) {
+        console.error("Error parsing monthly cases data:", e);
+    }
+
+    // Reset Filters Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const resetButton = document.getElementById('resetFilters');
+        if (resetButton) {
+            resetButton.addEventListener('click', function() {
+                // Clear all form inputs
+                document.getElementById('date_from').value = '';
+                document.getElementById('date_to').value = '';
+                document.getElementById('status').selectedIndex = 0;
+                document.getElementById('advocate').selectedIndex = 0;
+                
+                // Submit the form to reload the page without filters
+                window.location.href = window.location.pathname;
+            });
+        }
+
+        // Optional: Auto-submit when dropdowns change
+        document.getElementById('status').addEventListener('change', function() {
+            document.getElementById('analyticsFilterForm').submit();
+        });
+        
+        document.getElementById('advocate').addEventListener('change', function() {
+            document.getElementById('analyticsFilterForm').submit();
+        });
+    });
+</script>
+
+<style>
+    .dashboard-header {
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 0.5rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .card-header {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        font-weight: 600;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+        min-height: 300px;
+    }
+    
+    canvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
+    
+    .financial-summary {
+        padding: 1rem;
+    }
+    
+    .recovery-rate .badge {
+        font-size: 1rem;
+        min-width: 80px;
+    }
+    
+    @media (max-width: 768px) {
+        .chart-container {
+            height: 250px;
+        }
+        
+        .card-header h5 {
+            font-size: 1rem;
+        }
+    }
+</style>
+{% endblock %}

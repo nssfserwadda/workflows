@@ -37,8 +37,8 @@ class LegalFilesForm(forms.ModelForm):
             'closure_date'
         ]  # Add all fields you want to include in the form
         widgets = {
-            'fy_submitted_to_legal': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'FY Submitted to Legal'}),
-            'fy_deed_signed': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'FY Deed Signed'}),
+            'fy_submitted_to_legal': forms.Select(attrs={'class': 'form-select'}),
+            'fy_deed_signed': forms.Select(attrs={'class': 'form-select'}),
             'source': forms.Select(attrs={'class': 'form-select'}),
             'legal_status': forms.Select(attrs={'class': 'form-select'}),
             'employer_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Employer Name'}),

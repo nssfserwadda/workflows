@@ -108,6 +108,11 @@ header {
   bottom: 0;
   width: 100%;
 }
+canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 300px;
+}
 
     </style>
 </head>
@@ -161,15 +166,22 @@ header {
                                 <div class="sticky-menu" id="collapseEngagement">
                                     <ul class="nav flex-column">
                                         {% if user|user_in_group:'Advocates' %}
+                                        <li><a class="nav-link" href="/analytics">Dashboard</a></li>
+
                                         <li><a class="nav-link" href="/calendar">Calendar</a></li>
                                         <li><a class="nav-link" href="/addfile">Record a new legal file</a></li>
-                                        <li><a class="nav-link" href="/legalfiles"> All Legal Files</a></li>
+                                        <li><a class="nav-link" href="/legalfiles"> Assigned Legal Files</a></li>
+                                        <li><a class="nav-link" href="/legalfiles?view=all"> All Legal Files</a></li>
+
                                         <li><a class="nav-link" href="/agreements">My Agreements</a></li>
                                         <li><a class="nav-link" href="/agreements">My Deeds</a></li>
                                         {% endif %}
 
                                         {% if user|user_in_group:'Debt Recovery Manager' %}
+                                        <li><a class="nav-link" href="/analytics">Dashboard</a></li>
                                         <li><a class="nav-link" href="/calendar">Calendar</a></li>
+
+                                        
                                         <li><a class="nav-link" href="/legalfiles"> All Legal Files</a></li>
                                         <li><a class="nav-link" href="/search_files">Search Legal Files</a></li>
                                         <li><a class="nav-link" href="/files_toassign">Legal Files to Assign</a></li>
@@ -179,6 +191,8 @@ header {
                                         {% endif %}
 
                                         {% if user|user_in_group:'Legal Managers' %}
+                                        <li><a class="nav-link" href="/analytics">Dashboard</a></li>
+
                                         <li><a class="nav-link" href="/calendar">Calendar</a></li>
                                         <li><a class="nav-link" href="/legalfiles"> All Legal Files</a></li>
                                         <li><a class="nav-link" href="/search_files">Search Legal Files</a></li>
@@ -189,6 +203,8 @@ header {
 
                                         
                                         {% if user|user_in_group:'commercial' %}
+                                        <li><a class="nav-link" href="/analytics">Dashboard</a></li>
+
                                         <li><a class="nav-link" href="/legalfiles"> All Legal Files</a></li>
                                         <li><a class="nav-link" href="/search_files">Search Legal Files</a></li>
                                         <li><a class="nav-link" href="/agreements">All Agreements</a></li>

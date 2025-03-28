@@ -45,8 +45,16 @@ urlpatterns = [
     path("lmview/emp_det/<int:id>/", views.employer_detail, name="l_emp_det"),
     path("lmview/emp_det/req_rev/<int:id>", views.closure_detail, name="l_req_rev"),
     
+    path("bdu_rev/", views.bdu_review, name="bdu_rev"),
+    path("bdu_rev/emp_det/<int:id>/", views.employer_detail, name="b_emp_det"),
+    path("bdu_rev/emp_det/req_rev/<int:id>", views.closure_detail, name="b_req_rev"),  # New URL pattern
+    path("apvd/", views.approved_entries, name="apvd"),
+    path("apvd/emp_det/<int:id>/", views.employer_detail, name="apvd_emp_det"),
+    path("apvd/emp_det/req_rev/<int:id>", views.closure_detail, name="apvd_req_rev"),  # New URL pattern
     path('get_employer_name/', get_employer_name, name='get_employer_name'),
-    
+    path("asgnedview/", views.assigned_entries, name="asgnedview"),
+    path("asgnedview/emp_det/<int:id>/", views.employer_detail, name="a_emp_det"),
+    path("asgnedview/emp_det/req_rev/<int:id>", views.closure_detail, name="a_req_rev"),  # New URL pattern  
     path("engag/", views.engagement_record, name="engag"),
     path("engagview/", views.view_engagements, name="engagview"),
     path("engagview/emp_eng/<int:id>/", views.employer_engagements, name="emp_eng"),

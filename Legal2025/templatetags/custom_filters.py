@@ -5,3 +5,19 @@ register = template.Library()
 @register.filter(name='user_in_group')
 def user_in_group(user, group_name):
     return user.groups.filter(name=group_name).exists()
+
+
+@register.filter
+def div(value, arg):
+    try:
+        return value / arg
+    except (ZeroDivisionError, TypeError):
+        return None
+
+
+@register.filter
+def multiply(value, arg):
+    try:
+        return float(value) * float(arg)
+    except (TypeError, ValueError):
+        return 0
